@@ -597,6 +597,49 @@ b, strong, .brand, .ttl, h1, h2, h3 { font-weight: 700; }
 .ttest, .utest { border-radius: 24px; }
 .testbtn { background: var(--prim) !important; color: #fff; border-radius: 24px; box-shadow: 0 10px 22px rgba(139,124,246,.35) !important; }
 .testbtn.locked { background: #e6e0ff !important; color: var(--soft); box-shadow: none !important; }
+
+/* ===== Dạng trượt ngang, bớt chữ ===== */
+.rail { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 16px 14px; margin: 0 -14px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-padding-inline: 16px; }
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { flex: none; scroll-snap-align: start; }
+.rhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -6px; }
+.rhead b { font-family: var(--display); font-size: 1.05rem; } .rhead small { color: var(--soft); font-weight: 600; font-size: .78rem; }
+.tiles-rail .tile { width: 116px; height: 116px; justify-content: space-between; padding: 14px; }
+.tiles-rail .tile b { font-size: 1rem; line-height: 1.15; }
+.vocab.mini { flex-direction: row; align-items: center; gap: 10px; padding: 10px 14px; }
+.vocab.mini b { font-family: var(--display); font-size: 1rem; white-space: nowrap; } .vocab.mini .bar { flex: 1; } .vocab.mini span { color: var(--soft); font-size: .8rem; white-space: nowrap; }
+.linkrow { border: 0; background: #fff; border-radius: 18px; padding: 12px 16px; display: flex; justify-content: space-between; font-weight: 700; color: var(--ink); box-shadow: var(--shadow-s); }
+.linkrow span { color: var(--soft); }
+/* danh sách thẻ lớn (Unit, nhóm âm, Sân chơi) -> trượt ngang */
+.ulist:has(> .ucard) { display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 16px 14px; margin: 0 -14px; scrollbar-width: none; scroll-padding-inline: 16px; }
+.ulist:has(> .ucard)::-webkit-scrollbar { display: none; }
+.ulist > .ucard { flex: none; width: 168px; min-height: 172px; scroll-snap-align: start; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 14px; }
+.ulist > .ucard .tx { width: 100%; }
+.ulist > .ucard small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .74rem; }
+.ulist > .ucard .ust { position: absolute; top: 12px; right: 12px; font-size: 1.05rem; }
+.ulist > .ucard { position: relative; }
+.ulist > .ucard .skrow { font-size: .78rem; gap: 6px; }
+/* lưới chủ đề, việc làm, từ -> trượt ngang */
+.tgrid { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 16px 14px; margin: 0 -14px; scrollbar-width: none; scroll-padding-inline: 16px; }
+.tgrid::-webkit-scrollbar { display: none; }
+.tgrid > .tcard { flex: none; width: 136px; scroll-snap-align: start; }
+.tgrid > .tcard small { font-size: .72rem; }
+.acts { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 4px 16px 14px; margin: 0 -14px; scrollbar-width: none; }
+.acts::-webkit-scrollbar { display: none; }
+.acts > .act { flex: none; width: 128px; min-height: 112px; scroll-snap-align: start; justify-content: space-between; }
+.acts > .act small { display: none; }
+.wgrid { display: grid !important; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: 92px; grid-template-columns: none !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; padding: 4px 16px 14px; margin: 0 -14px; scrollbar-width: none; }
+.wgrid::-webkit-scrollbar { display: none; }
+.wgrid > .wc { scroll-snap-align: start; }
+.ext { display: flex; overflow-x: auto; flex-wrap: nowrap !important; scrollbar-width: none; padding-bottom: 4px; }
+.ext::-webkit-scrollbar { display: none; }
+.ext > * { flex: none; }
+.h2 { font-size: 1.05rem; margin: 6px 0 -6px; color: var(--ink); }
+.h2 small, .h2 .note { display: none; }
+.bubble { font-size: .98rem; line-height: 1.35; }
+.ulist > .ucard .skrow { display: none; }
+.ulist > .ucard .lvdots { margin-top: 4px; }
+.ulist > .ucard .ust { font-family: var(--display); font-weight: 700; }
 </style>
 
 <div id="app"></div>
@@ -1983,8 +2026,8 @@ function home(){
   Sfx.musicOn();
   const kn = totalKnown(), due = dueAll().length, total = WORDS.length + Object.keys(BYID).length - WORDS.length;
   const msg = !Object.keys(S.w).length
-    ? `${greet()}! Tớ là <b>thỏ Mochi</b>. Mình cùng ôn tiếng Anh nhé! Bấm nút cam to để bắt đầu.`
-    : due ? `${greet()}! Hôm nay có <b>${due} từ</b> cần nhắc lại đó. Mình bắt đầu nha!` : `${greet()}! Hôm nay mình ôn <b>${curUnit().name}</b> nhé!`;
+    ? `${greet()}! Tớ là <b>Mochi</b>. Học cùng tớ nhé!`
+    : due ? `${greet()}! Có <b>${due} từ</b> cần nhắc lại đó.` : `${greet()}! Hôm nay ôn <b>${curUnit().name}</b> nhé!`;
   $app.innerHTML = `
     <div class="hero">
       <div style="display:flex;align-items:center;gap:8px;min-width:0">
@@ -1995,16 +2038,17 @@ function home(){
     ${inHub ? '<div class="brand hubtitle">Bé Ôn <span>Tiếng Anh</span></div>' : ''}
     <button class="kidbar" data-a="kid" ${inHub ? 'hidden' : ''}><span class="av">${curKid().av}</span><b>${esc(curKid().name)}</b>${KIDS.list.length > 1 ? `<small>Đổi bé ▾</small>` : `<small>＋ Thêm bé</small>`}</button>
     ${talk(msg)}
-    <button class="today" data-a="today"><span class="play">▶</span><span><b>Hôm nay học gì?</b><small>Khoảng 10–15 phút · Mochi xếp bài sẵn cho bé</small></span></button>
-    <div class="vocab"><div class="row"><b>📚 Vốn từ của bé</b><span>${kn} / ${total} từ</span></div><div class="bar"><i style="width:${(kn / total * 100).toFixed(1)}%"></i></div></div>
-    <div class="tiles">
-      <button class="tile" style="--c:var(--sky)" data-a="units"><span class="ic">📘</span><b>Ôn theo Unit</b><small>Nghe · Nói · Đọc · Viết</small></button>
-      <button class="tile" style="--c:var(--lilac)" data-a="topics"><span class="ic">🚀</span><b>Từ vựng mở rộng</b><small>${TOPICS.filter(topicOpen).length}/${TOPICS.length} chủ đề đã mở</small></button>
-      <button class="tile" style="--c:var(--mint)" data-a="book"><span class="ic">📒</span><b>Sổ từ</b><small>Từ đã gặp · từ hay sai</small></button>
-      <button class="tile" style="--c:var(--coral)" data-a="phon"><span class="ic">🔤</span><b>Âm & Ghép vần</b><small>${PHG.filter(g => phDone(g.id)).length + SWB.filter(b => phDone(b.id)).length}/${PHG.length + SWB.length} phần đã xong</small></button>
+    <button class="today" data-a="today"><span class="play">▶</span><span><b>Hôm nay học gì?</b><small>10–15 phút · ${curUnit().name}</small></span></button>
+    <div class="vocab mini"><b>📚 ${kn}</b><div class="bar"><i style="width:${(kn / total * 100).toFixed(1)}%"></i></div><span>${total} từ</span></div>
+    <div class="rhead"><b>Khám phá</b><small>trượt ngang ›</small></div>
+    <div class="rail tiles-rail">
+      <button class="tile" style="--c:var(--sky)" data-a="units"><span class="ic">📘</span><b>Theo Unit</b></button>
+      <button class="tile" style="--c:var(--coral)" data-a="phon"><span class="ic">🔤</span><b>Âm & vần</b></button>
+      <button class="tile" style="--c:var(--sun)" data-a="play"><span class="ic">🎲</span><b>Sân chơi</b></button>
+      <button class="tile" style="--c:var(--lilac)" data-a="topics"><span class="ic">🚀</span><b>Từ vựng</b></button>
+      <button class="tile" style="--c:var(--mint)" data-a="book"><span class="ic">📒</span><b>Sổ từ</b></button>
     </div>
-    <div class="tiles"><button class="tile" style="--c:var(--sun)" data-a="play"><span class="ic">🎲</span><b>Sân chơi</b><small>9 trò: Bingo · Ô chữ · Câu đố…</small></button>
-    <button class="tile" style="--c:#8b8fa8" data-a="parents"><span class="ic">👨‍👩‍👦</span><b>Góc bố mẹ</b><small>Báo cáo · sao lưu · cài đặt</small></button></div>
+    <button class="linkrow" data-a="parents">👨‍👩‍👦 Góc bố mẹ <span>›</span></button>
     ${TTS ? '' : '<p class="note">🔇 Trình xem này chưa đọc được tiếng Anh. Hãy mở bằng Chrome để bé nghe được phát âm.</p>'}`;
   on('today', () => go(daily));
   on('kid', () => go(kidsScreen));
@@ -2026,7 +2070,7 @@ function topics(){
   Sfx.musicOn();
   const nOpen = TOPICS.filter(topicOpen).length;
   $app.innerHTML = topBar('Từ vựng mở rộng', `${nOpen}/${TOPICS.length} chủ đề đã mở · ${WORDS.length} từ`) +
-    talk(nOpen ? 'Chọn một chủ đề bé thích nào! Chủ đề nào thuộc gần hết sẽ được <b>huy hiệu 🏅</b>.' : 'Bé học tốt các <b>Unit trên lớp</b> trước nhé! Qua bài <b>Kiểm tra Unit</b> là mở được các chủ đề cùng chủ đề đó. 🔒') +
+    talk(nOpen ? 'Chọn chủ đề bé thích nào!' : 'Bé học tốt các <b>Unit trên lớp</b> trước nhé! Qua bài <b>Kiểm tra Unit</b> là mở được các chủ đề cùng chủ đề đó. 🔒') +
     [[1, '📗 Bộ 1 · Starters'], [2, '📙 Bộ 2 · Movers <small class="note">(mở khi bé học tốt tất cả các Unit)</small>']].map(([set, hd]) => `<div class="h2">${hd}</div><div class="tgrid">${TOPICS.filter(t => (t.set || 1) === set).map(t => {
       const k = knownIn(t).length, n = t.list.length;
       const op = topicOpen(t);
@@ -2042,8 +2086,8 @@ function topic(t){
   if (!topicOpen(t)) { go(topics); return; }
   S.cur = t.id; save();
   const seen = seenIn(t), k = knownIn(t).length, unseen = t.list.filter(w => !S.w[w.id]), due = seen.filter(w => S.w[w.id].d <= today());
-  const msg = !seen.length ? `Chủ đề <b>${t.vi}</b>! Bé làm <b>Kiểm tra nhanh</b> trước nhé, từ nào biết rồi Mochi sẽ bỏ qua.`
-    : k >= t.list.length ? 'Bé thuộc hết chủ đề này rồi! Thỉnh thoảng nhắc lại cho nhớ lâu nha.' : `Bé đã thuộc <b>${k}/${t.list.length}</b> từ. Cố lên!`;
+  const msg = !seen.length ? `Làm <b>Kiểm tra nhanh</b> trước nhé!`
+    : k >= t.list.length ? 'Thuộc hết rồi! 🏅' : `Đã thuộc <b>${k}/${t.list.length}</b> từ!`;
   $app.innerHTML = topBar(t.vi, `${t.list.length} từ`, '', topics) + talk(msg) +
     `<div class="thead" style="--c:${t.c}"><span class="ti">${t.icon}</span><div class="tx"><b>${k}/${t.list.length} từ đã thuộc ${S.stk[t.id] ? '🏅' : ''}</b>
       <div class="bar"><i style="width:${k / t.list.length * 100}%;background:${t.c}"></i></div>
@@ -2112,7 +2156,7 @@ function daily(){
   const run = () => { if (SESSION !== sess) return; if (i >= steps.length) { SESSION = null; return go(dayDone, t0); } const st2 = steps[i++]; sess.i = i; st2.run(run); };
   const sess = { i: 0, n: steps.length };
   Sfx.musicOff();
-  $app.innerHTML = topBar('Hôm nay học gì?', `Đang ôn ${u.name} · ${u.sub}`) + talk(`Hôm nay mình làm <b>${steps.length} phần</b> nhé. Sẵn sàng chưa?`, 'happy') +
+  $app.innerHTML = topBar('Hôm nay học gì?', `Đang ôn ${u.name} · ${u.sub}`) + talk(`Hôm nay có <b>${steps.length} phần</b>. Sẵn sàng chưa?`, 'happy') +
     `<div class="panel">${steps.map((s, k) => `<div class="setrow"><span>${['①', '②', '③', '④'][k]} ${s.name}</span></div>`).join('')}</div>
      <button class="btn" style="--c:var(--coral);--d:var(--coral-d)" data-a="go">Bắt đầu thôi! 🚀</button>`;
   sayVi(`Hôm nay mình làm ${steps.length} phần nhé. Sẵn sàng chưa?`);
@@ -2699,7 +2743,7 @@ const curUnit = () => UBY(S.unit) || UNITS.find(u => !unitDone(u.id)) || UNITS[U
 function units(){
   Sfx.musicOn();
   $app.innerHTML = topBar('Ôn theo Unit', 'Đúng bài cô dạy trên lớp') +
-    talk('Mỗi Unit có 4 kỹ năng: <b>Nghe, Nói, Đọc, Viết</b>. Học tốt Unit nào thì mở được <b>từ vựng mở rộng</b> của Unit đó!') +
+    talk('Chọn Unit bé đang học nhé!') +
     `<div class="ulist">${UNITS.map(u => {
       const pct = unitPct(u.id);
       return `<button class="ucard ${curUnit().id === u.id ? 'cur' : ''}" style="--c:${u.c};--d:${u.d}" data-a="u" data-id="${u.id}">
@@ -2712,9 +2756,9 @@ function unitHome(u){
   Sfx.musicOn();
   S.unit = u.id; save();
   const tOpen = testOpen(u.id), done = unitDone(u.id);
-  const msg = done ? `Bé đã học tốt <b>${u.name}</b>! Các chủ đề mở rộng bên dưới đã mở rồi đó 🎉`
-    : tOpen ? `Bé đã sẵn sàng làm <b>Kiểm tra ${u.name}</b>! Đạt 8/10 là mở được từ vựng mở rộng.`
-    : 'Chọn một kỹ năng để luyện. Mỗi kỹ năng có <b>3 cấp</b>, đạt 8/10 thì mở cấp tiếp theo.';
+  const msg = done ? `Xong <b>${u.name}</b> rồi! 🎉`
+    : tOpen ? `Làm <b>Kiểm tra</b> được rồi đó!`
+    : 'Chọn kỹ năng để luyện nhé!';
   $app.innerHTML = topBar(u.name, u.sub, '', units) + talk(msg) +
     `<div class="skgrid">${SK.map(s => { const st = [0, 1, 2].map(l => lvStars(u.id, s.k, l)); const lvl = st.filter(x => x >= 2).length;
       return `<button class="sk" style="--c:${s.c};--d:${s.d}" data-a="s" data-k="${s.k}"><span class="ic">${s.ic}</span><b>${s.n}</b>
@@ -2737,7 +2781,7 @@ function unitHome(u){
 }
 function skillHome(u, s){
   Sfx.musicOn();
-  $app.innerHTML = topBar(`${s.ic} ${s.n} · ${u.name}`, u.sub, '', () => go(unitHome, u)) + talk(`Luyện kỹ năng <b>${s.n}</b>. Đạt 8/10 để mở cấp tiếp theo nhé!`) +
+  $app.innerHTML = topBar(`${s.ic} ${s.n} · ${u.name}`, u.sub, '', () => go(unitHome, u)) + talk(`Đúng <b>8/10</b> là mở cấp mới!`) +
     `<div class="ladder">${[0, 1, 2].map(l => { const op = lvOpen(u.id, s.k, l), st = lvStars(u.id, s.k, l);
       return `<button class="lv ${op ? '' : 'locked'}" style="--c:${s.c};--d:${s.d}" data-a="l" data-l="${l}"><span class="n">${op ? l + 1 : '🔒'}</span>
         <span class="tx"><b>Cấp ${l + 1} · ${LV[s.k][l][0]}</b><small>${op ? LV[s.k][l][1] : `Đạt 8/10 ở cấp ${l} để mở`}</small></span><span class="st">${op ? starTxt(st) : ''}</span></button>`; }).join('')}</div>`;
@@ -3323,7 +3367,7 @@ function phonics(){
   const card = (x, kind, sub) => { const st = [0, 1, 2].map(l => phStars(x.id, l));
     return `<button class="ucard" style="--c:${x.c || '#9b7bff'};--d:${x.d || '#7a59e6'}" data-a="${kind}" data-id="${x.id}"><span class="ti">${kind === 'g' ? `<span class="lt">${x.ext ? x.letters.slice(0, 2).join(' ') : x.letters.filter(t => t.length === 1).slice(0, 3).join('')}</span>` : '👀'}</span>
       <span class="tx"><b>${x.name}</b><small>${sub}</small><span class="lvdots dark">${st.map(s => `<i class="${s >= 2 ? 'on' : ''}"></i>`).join('')}</span></span><span class="ust">${phDone(x.id) ? '🏆' : ''}</span></button>`; };
-  $app.innerHTML = topBar('Âm & Ghép vần', 'Phonics · Sight words') + talk('Học <b>âm</b> để tự đọc được từ mới, và học <b>sight words</b> – những từ gặp nhiều nhất trong sách!') +
+  $app.innerHTML = topBar('Âm & Ghép vần', 'Phonics · Sight words') + talk('Học <b>âm</b> để tự đọc từ mới nhé!') +
     `<div class="h2">🔤 Âm & ghép vần (theo thứ tự cô dạy)</div><div class="ulist">${PHG.filter(g => !g.ext).map(g => card(g, 'g', `${g.letters.join(' · ')} · ${g.W.length} từ`)).join('')}</div>
      <div class="h2">🚀 Mở rộng: âm ghép (Jolly Phonics 4–8) <small class="note">mở dần khi xong nhóm trước</small></div><div class="ulist">${PHG.filter(g => g.ext).map(g => phOpen(g.id, 0) ? card(g, 'g', `${g.letters.join(' · ')} · ${g.W.length} từ`) : card(Object.assign({}, g, { name: '🔒 ' + g.name }), 'g', `Học xong ${PHG[PHG.indexOf(g) - 1].name} để mở`)).join('')}</div>
      <div class="h2">👀 Sight words</div><div class="ulist">${SWB.map(b => { Object.assign(b, { c: '#9b7bff', d: '#7a59e6' }); return phOpen(b.id, 0) ? card(b, 'b', b.words.join(', ')) : card(Object.assign({}, b, { name: '🔒 ' + b.name }), 'b', `Học xong ${SWB[SWB.indexOf(b) - 1].name} để mở`); }).join('')}</div>`;
@@ -3334,7 +3378,7 @@ function phHome(x, kind){
   Sfx.musicOn();
   const LVX = kind === 'g' ? PH_LV : SW_LV;
   $app.innerHTML = topBar(x.name, kind === 'g' ? x.letters.join(' · ') : x.words.join(', '), '', phonics) +
-    talk(kind === 'g' ? `Các âm: <b>${x.letters.join(', ')}</b>. Đạt 8/10 để mở cấp tiếp theo nhé!` : 'Sight words là từ cần <b>nhìn là đọc ngay</b>. Mình luyện thật nhanh nào!') +
+    talk(kind === 'g' ? `Âm: <b>${x.letters.join(' ')}</b>` : 'Nhìn là <b>đọc ngay</b> nhé!') +
     `<div class="ladder">${[0, 1, 2].map(l => { const op = phOpen(x.id, l), st = phStars(x.id, l);
       return `<button class="lv ${op ? '' : 'locked'}" style="--c:${x.c}" data-a="l" data-l="${l}"><span class="n">${op ? l + 1 : '🔒'}</span><span class="tx"><b>Cấp ${l + 1} · ${LVX[l][0]}</b><small>${op ? LVX[l][1] : `Đạt 8/10 ở cấp ${l} để mở`}</small></span><span class="st">${op ? starTxt(st) : ''}</span></button>`; }).join('')}</div>
     <div class="h2">${kind === 'g' ? 'Từ ghép được' : 'Các từ'}</div>
@@ -3462,7 +3506,7 @@ const GZ = [
 function playzone(){
   Sfx.musicOn();
   const pool = playPool(); S.gm = S.gm || {};
-  $app.innerHTML = topBar('Sân chơi', `${pool.length} từ để chơi · càng học nhiều càng nhiều từ`) + talk('Chọn trò chơi nào! Từ trong trò chơi lấy từ <b>những từ bé đã học</b>.') +
+  $app.innerHTML = topBar('Sân chơi', `${pool.length} từ để chơi`) + talk('Chọn trò chơi nào!') +
     `<div class="ulist">${GZ.map(g => { const lock = g.id === 'opp' && !oppOpen(), st = S.gm[g.id] || 0;
       return `<button class="ucard ${lock ? 'locked' : ''}" style="--c:${g.c}" data-a="g" data-id="${g.id}"><span class="ti">${lock ? '🔒' : g.icon}</span><span class="tx"><b>${g.name}</b><small>${lock ? 'Học tốt Unit 2 để mở' : g.d}</small></span><span class="ust" style="color:var(--sun-d)">${st ? '★'.repeat(st) : ''}</span></button>`; }).join('')}</div>`;
   on('g', b => { const g = GZ.find(x => x.id === b.dataset.id); if (g.id === 'opp' && !oppOpen()) { mochi('Trò này mở khi bé <b>học tốt Unit 2</b> nhé!', 'oops'); Sfx.boing(); return; } playGame(g); });
