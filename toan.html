@@ -1,0 +1,837 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<style>:root{--hk-sh:#cfe8d9} #fsBtn,.fssec{display:none!important} .hk-title{font-size:1.9rem;margin:-4px 0 -6px} .gear.hk-btn svg{width:24px;height:24px}</style><style>.hk-btn{width:46px!important;height:46px!important;border-radius:15px!important;border:0!important;background:#fff!important;color:#2a2140!important;display:grid!important;place-items:center!important;padding:0!important;margin:0!important;box-shadow:0 4px 0 var(--hk-sh,rgba(42,33,64,.14))!important;cursor:pointer;flex:none;touch-action:manipulation}
+.hk-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--hk-sh,rgba(42,33,64,.14))!important}
+.hk-btn svg{width:24px;height:24px}
+.hk-l{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.hk-kid{display:inline-flex;align-items:center;gap:8px;border:0;background:#fff;border-radius:999px;padding:4px 14px 4px 4px;box-shadow:0 4px 0 var(--hk-sh,rgba(42,33,64,.14));cursor:pointer;color:#2a2140;min-width:0;max-width:64vw;font:inherit;height:50px;box-sizing:border-box;flex:none}
+.hk-kid:active{transform:translateY(3px);box-shadow:0 1px 0 var(--hk-sh,rgba(42,33,64,.14))}
+.hk-av{width:42px;height:42px;border-radius:50%;background:#f3eefe;display:grid;place-items:center;font-size:1.55rem;flex:none;line-height:1}
+.hk-kid .hk-t{display:flex;flex-direction:column;text-align:left;min-width:0;line-height:1.1}
+.hk-kid b{font-family:"Baloo 2",Nunito,system-ui,sans-serif;font-weight:800;font-size:1.12rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hk-kid small{font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:.74rem;color:#6a5f80;white-space:nowrap}
+.hk-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+</style><script>
+(function(){
+  var inHub=false; try{ inHub = window.parent!==window && !!window.parent.document.getElementById('stage'); }catch(e){}
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('#hubHomeBtn'); if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if(inHub) window.parent.postMessage({hub:'home'},'*'); else location.href='index.html';
+  },true);
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('.hk-kid'); if(!b||!inHub) return;
+    e.preventDefault(); e.stopPropagation(); window.parent.postMessage({hub:'kids'},'*');
+  },true);
+  function fill(){ var slots=document.querySelectorAll('.hk-kidslot'); if(!slots.length) return;
+    var K=null; try{ K=JSON.parse(localStorage.getItem('boe:kids')||'null'); }catch(e){}
+    if(!K||!K.list||!K.list.length) K={list:[{id:'k1',name:'Bé',av:'🐰'}],cur:'k1'};
+    var k=K.list.filter(function(x){return x.id===K.cur})[0]||K.list[0];
+    slots.forEach(function(sl){ if(!inHub){ sl.remove(); return; } var b=document.createElement('button'); b.type='button'; b.className='hk-kid'; b.setAttribute('aria-label','Bé đang học: '+k.name+'. Bấm để đổi bé');
+      var a=document.createElement('span'); a.className='hk-av'; a.textContent=k.av; var t=document.createElement('span'); t.className='hk-t'; var n=document.createElement('b'); n.textContent=k.name; var sm=document.createElement('small'); sm.textContent='đổi bé'; t.appendChild(n); t.appendChild(sm); b.appendChild(a); b.appendChild(t); sl.replaceWith(b); }); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fill); else fill();
+  try{ new MutationObserver(function(){ if(document.querySelector('.hk-kidslot')) fill(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+})();
+</script>
+
+<title>Bảng Con Tính Nhanh</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: one-screen white question card on a mint page (same family as the other Bé Học apps); countdown bar drains on the card; compact phone-style keypad below */
+:root {
+  --wood: #cfe8d9;        /* màu bóng đổ / viền nhạt */
+  --wood-dark: #1f7a52;   /* màu nhấn chính (xanh lá) */
+  --slate: #ffffff;
+  --slate-deep: #ffffff;
+  --chalk: #23324a;       /* chữ số trên bảng */
+  --chalk-dim: #9db2a7;
+  --yellow: #ffc93c;
+  --pink: #ff7a8a;
+  --good: #2fbf8a;
+  --bad: #ff6b5b;
+  --page: #eaf7ef;
+  --ink: #23324a;
+  --accent: #ff8a3d;
+  --display: "Baloo 2", "Nunito", system-ui, sans-serif;
+  --body: "Nunito", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.app { max-width: 520px; margin: 0 auto; padding-block: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.05; color: var(--ink); }
+.brand span { color: var(--accent); }
+.modes { display: flex; gap: 6px; }
+.chip {
+  font-family: var(--display); font-weight: 700; font-size: 1rem;
+  border: 2px solid var(--wood); background: #fff; color: var(--ink);
+  border-radius: 999px; padding: 4px 12px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--wood-dark); border-color: var(--wood-dark); color: #fff; }
+.chip:focus-visible, .key:focus-visible, .btn:focus-visible, .toggle:focus-visible, .lvbtn:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+.levelbar { display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+.lvl { display: flex; align-items: center; gap: 6px; }
+.lvbtn {
+  width: 34px; height: 34px; border-radius: 12px; border: 0; box-shadow: 0 3px 0 var(--wood);
+  background: #fff; color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 1.1rem; cursor: pointer; line-height: 1;
+}
+.lvbtn:disabled { opacity: .3; cursor: default; }
+.lvname { font-family: var(--display); font-weight: 800; font-size: 1.3rem; color: var(--ink); min-width: 4.2em; text-align: center; }
+.lvinfo { font-size: .95rem; color: var(--wood-dark); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.board { padding: 0; }
+.slate {
+  background: #fff;
+  border-radius: 26px;
+  box-shadow: 0 6px 0 var(--wood);
+  color: var(--chalk);
+  padding: 14px 14px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 280px;
+  container-type: inline-size;
+  overflow: hidden;
+}
+.meta { display: flex; justify-content: space-between; align-items: center; font-size: .95rem; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.dots { display: flex; gap: 5px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--chalk-dim); }
+.dot.ok { background: var(--good); border-color: var(--good); }
+.dot.slow { background: var(--yellow); border-color: var(--yellow); }
+.dot.late { background: var(--bad); border-color: var(--bad); }
+.dot.now { border-color: var(--chalk); transform: scale(1.25); }
+
+/* chalk countdown */
+.timer { height: 12px; border-radius: 6px; background: #eef4f0; overflow: hidden; }
+.fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--good), #7fd9b4); border-radius: 6px; transform-origin: left; }
+.fill.low { background: var(--pink); }
+
+.question {
+  font-family: var(--display); font-weight: 800;
+  font-size: min(calc(var(--k, 7) * 1cqw), 4.6rem); line-height: 1.1;
+  text-align: center;
+  display: flex; justify-content: center; align-items: center; gap: .18em;
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  padding-block: 8px;
+}
+.question > span { flex: none; }
+.ans.wide { min-width: 1.8em; }
+.op { color: var(--accent); }
+.ans { min-width: 1.15em; border-bottom: 5px dashed var(--chalk-dim); text-align: center; color: var(--chalk); }
+.ans.filled-ok { color: var(--good); border-bottom-color: var(--good); }
+.ans.filled-bad { color: var(--bad); border-bottom-color: var(--bad); }
+.ans.reveal { color: #e3a600; border-bottom-color: var(--yellow); }
+.shake { animation: shake .35s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.pop { animation: pop .35s; }
+@keyframes pop { 50%{transform:scale(1.15)} }
+
+/* que tính */
+.sticks { display: flex; justify-content: center; align-items: flex-end; gap: 18px; min-height: 58px; flex-wrap: wrap; }
+.group { display: flex; gap: 5px; align-items: flex-end; }
+.sticks { gap: 12px; }
+.group { gap: 4px; }
+.stick { width: 6px; height: 46px; border-radius: 3px; background: var(--yellow); position: relative; }
+.stick.b { background: var(--pink); }
+.stick.gone { opacity: .35; }
+.stick.gone::after { content: ""; position: absolute; left: -7px; top: 22px; width: 20px; height: 4px; background: var(--chalk); transform: rotate(-35deg); border-radius: 2px; }
+.sym { font-family: var(--display); font-weight: 800; font-size: 1.8rem; color: var(--chalk-dim); align-self: center; }
+
+.msg { text-align: center; font-family: var(--display); font-weight: 700; font-size: 1.25rem; min-height: 1.6em; color: var(--chalk); display: flex; justify-content: center; align-items: center; }
+
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(100%, 276px); margin: 0 auto; }
+.keys.pos-l { margin-left: 0; } .keys.pos-r { margin-right: 0; }
+.key {
+  font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 7vw, 2.1rem);
+  aspect-ratio: 6 / 5; max-width: 100%;
+  border: none; border-radius: 18px; cursor: pointer;
+  background: #fff; color: var(--ink);
+  box-shadow: 0 5px 0 var(--wood);
+  font-variant-numeric: tabular-nums;
+  touch-action: manipulation;
+}
+.keys.quick #k10 { grid-column: span 2; aspect-ratio: auto; }
+.key.fn { background: #dff3e8; font-size: clamp(1.3rem, 6vw, 1.8rem); }
+.key.ok { background: var(--yellow); box-shadow: 0 5px 0 #e3a600; }
+.key:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--wood); }
+.key:disabled { opacity: .5; }
+
+.footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .95rem; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 800; color: var(--wood-dark); background: none; border: none; font-family: var(--body); font-size: .95rem; padding: 4px 0; }
+.sw { width: 40px; height: 24px; border-radius: 12px; background: #cfe1d6; position: relative; transition: background .2s; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle[aria-pressed="true"] .sw { background: var(--wood-dark); }
+.toggle[aria-pressed="true"] .sw::after { left: 19px; }
+.best { color: var(--wood-dark); font-weight: 800; }
+.settings { background: #fffaf0; border-radius: 14px; box-shadow: 0 3px 0 #e6cfae; }
+.settings summary { list-style: none; cursor: pointer; padding: 10px 14px; font-weight: 800; color: var(--wood-dark); display: flex; justify-content: space-between; gap: 8px; }
+.settings summary::-webkit-details-marker { display: none; }
+.settings summary::after { content: "▾"; }
+.settings[open] summary::after { content: "▴"; }
+.settings summary:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; border-radius: 14px; }
+.setrows { padding: 0 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+.setrow { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.setrow > span { font-weight: 800; min-width: 7.5em; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg .chip { min-width: 44px; }
+.setnote { font-size: .9rem; color: var(--wood-dark); font-weight: 700; }
+.toggle:disabled { opacity: .4; cursor: default; }
+.toggles { display: flex; gap: 6px 16px; flex-wrap: wrap; }
+.streak { color: var(--yellow); font-family: var(--display); font-weight: 800; }
+
+.result { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; flex: 1; }
+.result h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.1; text-wrap: balance; }
+.stars { font-size: 3rem; letter-spacing: .1em; color: var(--yellow); line-height: 1; }
+.stars .off { color: #e3ece6; }
+.stats { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.stats b { display: block; font-family: var(--display); font-size: 1.8rem; color: var(--chalk); line-height: 1.1; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn {
+  font-family: var(--display); font-weight: 800; font-size: 1.4rem;
+  background: var(--yellow); color: var(--ink); border: none; border-radius: 14px;
+  padding: 8px 26px; cursor: pointer; box-shadow: 0 5px 0 #e3a600; border-radius: 18px;
+}
+.btn.ghost { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 2px var(--wood), 0 5px 0 var(--wood); }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #e3a600; }
+
+.top-r { display: flex; gap: 8px; align-items: center; }
+.fsbtn { border: 2px solid var(--wood-dark); background: transparent; color: var(--wood-dark); border-radius: 999px; padding: 4px 12px; font-family: var(--display); font-weight: 700; font-size: 1rem; cursor: pointer; }
+.fsbtn:focus-visible, .exitfs:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+.fsmsg { font-size: .85rem; font-weight: 700; color: var(--wood-dark); }
+@media (prefers-reduced-motion: reduce) { .shake, .pop { animation: none; } .sw, .sw::after { transition: none; } }
+
+.gear { width: 46px; height: 46px; border-radius: 15px; box-shadow: 0 4px 0 var(--wood); display: grid; place-items: center; padding: 0; flex: none; }
+.gear svg { width: 24px; height: 24px; }
+.gear:hover svg, .gear:active svg { transform: rotate(60deg); } .gear svg { transition: transform .3s; }
+.gear:focus-visible, .sumbar:focus-visible, .xbtn:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+.top { flex-wrap: nowrap; }
+.sumbar { display: flex; align-items: center; gap: 10px; border: 0; background: #fff; border-radius: 999px; padding: 5px 14px 5px 5px; box-shadow: 0 3px 0 var(--wood); align-self: flex-start; cursor: pointer; font-family: var(--body); color: var(--wood-dark); font-weight: 800; text-align: left; }
+.sumlv { background: var(--wood-dark); color: #fff; border-radius: 999px; padding: 3px 12px; font-family: var(--display); }
+.sumtx { font-size: .95rem; color: var(--ink); }
+.sheet-bg { position: fixed; inset: 0; background: rgba(20, 45, 32, .45); z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
+.sheet { background: #f3faf6; width: min(100%, 520px); max-height: 92vh; overflow-y: auto; border-radius: 24px 24px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; animation: sheetUp .25s ease-out; }
+@media (min-width: 600px) { .sheet-bg { align-items: center; } .sheet { border-radius: 24px; } }
+@keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-size: 1.3rem; color: var(--wood-dark); }
+.xbtn { width: 40px; height: 40px; border-radius: 14px; border: 0; background: #fff; box-shadow: 0 3px 0 var(--wood); color: var(--ink); font-weight: 900; cursor: pointer; }
+.sec { background: #fff; border-radius: 18px; box-shadow: 0 3px 0 var(--wood); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.sect { font-weight: 900; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--wood-dark); opacity: .75; }
+.sheet .setrows { padding: 0; }
+.sheet .fsbtn { align-self: flex-start; }
+.sheet .btn { align-self: stretch; }
+.sheet-bg[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+.hk-sky{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.hk-sky svg{position:absolute;fill:#fff;height:auto}
+.hk-sky .c1{width:190px;top:-26px;left:-56px;opacity:.95}
+.hk-sky .c2{width:130px;top:62px;right:-34px;opacity:.9}
+.hk-sky .c3{width:110px;top:52%;left:-44px;opacity:.75}
+.hk-sky .c4{width:150px;bottom:6%;right:-50px;opacity:.7}
+@media (min-width:700px){.hk-sky .c1{left:6%}.hk-sky .c2{right:8%}.hk-sky .c3{left:4%}.hk-sky .c4{right:5%}}
+</style>
+
+<div class="hk-sky" aria-hidden="true"><svg class="c1" viewBox="0 0 120 60"><path d="M22 52a15 15 0 0 1 3-29 22 22 0 0 1 41-9 17 17 0 0 1 30 11 14 14 0 0 1 4 27z"/></svg><svg class="c2" viewBox="0 0 120 60"><path d="M22 52a15 15 0 0 1 3-29 22 22 0 0 1 41-9 17 17 0 0 1 30 11 14 14 0 0 1 4 27z"/></svg><svg class="c3" viewBox="0 0 120 60"><path d="M22 52a15 15 0 0 1 3-29 22 22 0 0 1 41-9 17 17 0 0 1 30 11 14 14 0 0 1 4 27z"/></svg><svg class="c4" viewBox="0 0 120 60"><path d="M22 52a15 15 0 0 1 3-29 22 22 0 0 1 41-9 17 17 0 0 1 30 11 14 14 0 0 1 4 27z"/></svg></div>
+<div class="app">
+  <div class="top">
+    <div class="hk-l"><button type="button" id="hubHomeBtn" class="hk-btn" style="" aria-label="Về Bé học mỗi ngày" title="Về Bé học mỗi ngày"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h4.5v-5.5h4v5.5h4.5V10"/></svg></button><span class="hk-kidslot"></span></div>
+    <button class="lvbtn gear hk-btn" id="gearBtn" aria-label="Cài đặt" title="Cài đặt" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  </div>
+
+  <div class="brand hk-title">Bảng con <span>tính nhanh</span></div>
+  <button class="sumbar" id="sumBar" aria-label="Mở cài đặt"><span class="sumlv" id="sumLv">Cấp 1</span><span class="sumtx" id="sumTx"></span></button>
+
+  <div class="board">
+    <div class="slate" id="slate"></div>
+  </div>
+
+  <div class="keys" id="keys"></div>
+
+  <div class="footer"><span class="best" id="best"></span></div>
+
+  <div class="sheet-bg" id="sheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetT">
+      <div class="sheet-h"><b id="sheetT">⚙️ Cài đặt</b><button class="xbtn" id="sheetX" aria-label="Đóng">✕</button></div>
+      <div class="sec"><div class="sect">Phép tính</div>
+        <div class="modes" role="group" aria-label="Chọn phép tính">
+          <button class="chip" id="m-plus" data-mode="plus" aria-pressed="false">+ Cộng</button>
+          <button class="chip" id="m-minus" data-mode="minus" aria-pressed="false">− Trừ</button>
+          <button class="chip" id="m-mix" data-mode="mix" aria-pressed="true">+ − Cả hai</button>
+        </div></div>
+      <div class="sec"><div class="sect">Cấp độ</div>
+        <div class="levelbar">
+          <div class="lvl">
+            <button class="lvbtn" id="lvDown" aria-label="Giảm cấp">‹</button>
+            <span class="lvname" id="lvName">Cấp 1</span>
+            <button class="lvbtn" id="lvUp" aria-label="Tăng cấp">›</button>
+          </div>
+          <span class="lvinfo" id="lvInfo"></span>
+        </div></div>
+      <div class="sec"><div class="sect">Bài tính</div>
+        <div class="setrows">
+          <div class="setrow"><span>Phạm vi</span><div class="seg" role="group" aria-label="Phạm vi" id="segRange">
+            <button class="chip" data-range="10">10</button><button class="chip" data-range="20">20</button><button class="chip" data-range="50">50</button><button class="chip" data-range="100">100</button></div></div>
+          <div class="setrow"><span>Số phép tính</span><div class="seg" role="group" aria-label="Số phép tính liên tiếp" id="segSteps">
+            <button class="chip" data-steps="1">1</button><button class="chip" data-steps="2">2</button><button class="chip" data-steps="3">3</button></div></div>
+          <div class="setnote" id="setNote"></div>
+        </div></div>
+      <div class="sec"><div class="sect">Hỗ trợ & âm thanh</div>
+        <div class="toggles">
+          <button class="toggle" id="hintToggle" aria-pressed="true"><span class="sw"></span>Que tính</button>
+          <button class="toggle" id="musicToggle" aria-pressed="true"><span class="sw"></span>Nhạc nền</button>
+          <button class="toggle" id="sfxToggle" aria-pressed="true"><span class="sw"></span>Tiếng cổ vũ</button>
+        </div></div>
+      <div class="sec"><div class="sect">Bàn phím số</div>
+        <div class="setrow"><span>Vị trí</span><div class="seg" role="group" aria-label="Vị trí bàn phím" id="segPos">
+          <button class="chip" data-pos="l">✋ Trái</button><button class="chip" data-pos="c">Giữa</button><button class="chip" data-pos="r">Phải 🤚</button></div></div>
+        <div class="setnote">Bàn phím gọn như điện thoại, để sát bên tay bé hay cầm máy.</div></div>
+      <div class="sec fssec"><div class="sect">Màn hình</div><button class="fsbtn" id="fsBtn" aria-label="Toàn màn hình">⛶ Toàn màn hình</button></div>
+      <button class="btn" id="sheetOk">Xong</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ROUND = 10;
+  const PASS = 8;                 // cần đúng kịp giờ ≥ 8/10 để lên cấp
+  // giây cho câu đầu và câu cuối của mỗi cấp — trong lượt cũng nhanh dần
+  const LEVELS = [
+    [10, 8], [8, 6.5], [6.5, 5.5], [5.5, 4.5], [4.5, 3.8],
+    [3.8, 3.2], [3.2, 2.7], [2.7, 2.3], [2.3, 2], [2, 1.6]
+  ];
+  const slate = document.getElementById('slate');
+  const keysEl = document.getElementById('keys');
+  const bestEl = document.getElementById('best');
+  const hintBtn = document.getElementById('hintToggle');
+  const lvName = document.getElementById('lvName');
+  const lvInfo = document.getElementById('lvInfo');
+  const lvUp = document.getElementById('lvUp');
+  const lvDown = document.getElementById('lvDown');
+
+  const store = {
+    get(k, d){ try { const v = localStorage.getItem((function(){try{var K=JSON.parse(localStorage.getItem('boe:kids')||'null');return K&&K.cur&&K.cur!=='k1'?'toan:'+K.cur+':':'toan:';}catch(e){return 'toan:';}})()+k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } },
+    set(k, v){ try { localStorage.setItem((function(){try{var K=JSON.parse(localStorage.getItem('boe:kids')||'null');return K&&K.cur&&K.cur!=='k1'?'toan:'+K.cur+':':'toan:';}catch(e){return 'toan:';}})()+k, JSON.stringify(v)); } catch(e){} }
+  };
+
+  /* ===== Âm thanh sân bóng — tự tổng hợp bằng Web Audio ===== */
+  const Snd = (() => {
+    let ctx = null, master, musicGain, sfxGain, noiseBuf, musTimer = null, nextT = 0, step = 0, tempo = 110;
+    let sfxOn = store.get('sfx', true), musicOn = store.get('music', true);
+    const MUSIC_VOL = .32;
+    const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+    function init(){
+      if (ctx) { if (ctx.state === 'suspended') ctx.resume().catch(() => {}); return true; }
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return false; }
+      master = ctx.createGain(); master.gain.value = .9; master.connect(ctx.destination);
+      musicGain = ctx.createGain(); musicGain.gain.value = musicOn ? MUSIC_VOL : 0; musicGain.connect(master);
+      sfxGain = ctx.createGain(); sfxGain.gain.value = sfxOn ? 1 : 0; sfxGain.connect(master);
+      const len = ctx.sampleRate * 2;
+      noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      return true;
+    }
+    function tone(f, t0, dur, o = {}){
+      const { type = 'sine', vol = .2, out = sfxGain, slide = null, attack = .005 } = o;
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = type; osc.frequency.setValueAtTime(f, t0);
+      if (slide) osc.frequency.exponentialRampToValueAtTime(slide, t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(out); osc.start(t0); osc.stop(t0 + dur + .05);
+    }
+    function noise(t0, dur, o = {}){
+      const { freq = 1200, q = .8, vol = .3, type = 'bandpass', out = sfxGain, hit = false, glide = null } = o;
+      const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(freq, t0); f.Q.value = q;
+      if (glide) f.frequency.exponentialRampToValueAtTime(glide, t0 + dur);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + (hit ? .004 : dur * .3));
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      s.connect(f); f.connect(g); g.connect(out);
+      s.start(t0, Math.random()); s.stop(t0 + dur + .05);
+    }
+    function whistle(t, len){ // còi trọng tài: sine cao + rung nhanh
+      const o = ctx.createOscillator(); o.frequency.value = 2900;
+      const l = ctx.createOscillator(); l.frequency.value = 32;
+      const lg = ctx.createGain(); lg.gain.value = 140; l.connect(lg); lg.connect(o.frequency);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.11, t + .02);
+      g.gain.setValueAtTime(.11, t + len - .04); g.gain.linearRampToValueAtTime(0, t + len);
+      o.connect(g); g.connect(sfxGain);
+      o.start(t); l.start(t); o.stop(t + len + .02); l.stop(t + len + .02);
+    }
+    function crowd(t, dur, vol){
+      noise(t, dur, { freq: 1000, q: .5, vol });
+      noise(t, dur, { freq: 2500, q: 1, vol: vol * .45 });
+      for (let i = 0; i < 6; i++) { // tiếng "ồ" hò reo
+        const s = t + Math.random() * dur * .5;
+        tone(380 + Math.random() * 300, s, .5, { type: 'sawtooth', vol: .012, slide: 800 + Math.random() * 400, attack: .08 });
+      }
+    }
+    function claps(t, dur, n){
+      for (let i = 0; i < n; i++) noise(t + Math.random() * dur, .05, { type: 'highpass', freq: 1400, vol: .22, hit: true });
+    }
+    // nhạc nền: điệu cổ vũ vui, trống kick + hi-hat, nhanh dần theo cấp
+    const MEL = [76,79,84,79, 81,79,76,74, 76,79,81,79, 76,74,72,0,
+                 72,74,76,72, 77,76,74,72, 74,76,79,77, 76,74,72,0];
+    const BASS = [48,0,48,0, 53,0,53,0, 55,0,55,0, 48,0,43,0,
+                  45,0,45,0, 53,0,53,0, 55,0,55,0, 48,0,48,0];
+    function schedule(){
+      while (nextT < ctx.currentTime + .2) {
+        const dur = 60 / tempo / 2, i = step % 32;
+        if (MEL[i]) tone(mtof(MEL[i]), nextT, dur * .9, { type: 'triangle', vol: .16, out: musicGain });
+        if (BASS[i]) tone(mtof(BASS[i]), nextT, dur * 1.8, { type: 'sine', vol: .28, out: musicGain });
+        if (step % 4 === 0) tone(120, nextT, .16, { type: 'sine', vol: .45, slide: 45, out: musicGain });
+        if (step % 2 === 1) noise(nextT, .04, { type: 'highpass', freq: 7000, vol: .07, out: musicGain, hit: true });
+        nextT += dur; step++;
+      }
+    }
+    let vnVoice = null;
+    function loadVoices(){ try { vnVoice = speechSynthesis.getVoices().find(v => /^vi/i.test(v.lang)) || null; } catch (e) {} }
+    try { loadVoices(); speechSynthesis.addEventListener('voiceschanged', loadVoices); } catch (e) {}
+
+    const now = () => ctx.currentTime;
+    return {
+      unlock(){ init(); },
+      kickoff(){ if (!sfxOn || !init()) return; const t = now(); whistle(t, .7); crowd(t + .3, 1.6, .18); },
+      correct(){ if (!sfxOn || !init()) return; const t = now();
+        tone(1047, t, .12, { type: 'triangle', vol: .25 }); tone(1568, t + .08, .3, { type: 'triangle', vol: .25 });
+        noise(t + .05, .6, { freq: 1400, vol: .1 }); },
+      wrong(){ if (!sfxOn || !init()) return; const t = now();
+        tone(230, t, .28, { type: 'square', vol: .07, slide: 130 }); },
+      tick(){ if (!sfxOn || !init()) return; tone(1700, now(), .06, { type: 'square', vol: .05 }); },
+      goal(){ if (!sfxOn || !init()) return; const t = now(); crowd(t, 2.2, .3); claps(t + .2, 1.6, 16); },
+      groan(){ if (!sfxOn || !init()) return; const t = now();
+        noise(t, 1.4, { type: 'lowpass', freq: 900, glide: 260, vol: .3 });
+        tone(320, t, 1.1, { type: 'sawtooth', vol: .02, slide: 150, attack: .1 }); },
+      win(){ if (!sfxOn || !init()) return; const t = now();
+        whistle(t, .18); whistle(t + .28, .18); whistle(t + .56, .8);
+        [523, 659, 784, 1047].forEach((f, i) => tone(f, t + 1.4 + i * .14, i === 3 ? .8 : .2, { type: 'triangle', vol: .22 }));
+        crowd(t + 1.3, 3, .32); claps(t + 1.4, 2.5, 30); },
+      lose(){ if (!sfxOn || !init()) return; const t = now();
+        whistle(t, .9); noise(t + .8, 1.5, { type: 'lowpass', freq: 900, glide: 250, vol: .28 }); },
+      say(text){
+        if (!sfxOn || !vnVoice) return; // chỉ đọc khi máy có giọng tiếng Việt
+        try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text);
+          u.voice = vnVoice; u.lang = vnVoice.lang; u.rate = 1.05; u.pitch = 1.2; speechSynthesis.speak(u); } catch (e) {}
+      },
+      startMusic(lv){
+        if (!init()) return; tempo = 104 + lv * 8;
+        if (musTimer) return; nextT = ctx.currentTime + .1; step = 0; musTimer = setInterval(schedule, 50);
+      },
+      stopMusic(){ clearInterval(musTimer); musTimer = null; },
+      get music(){ return musicOn; }, get sfx(){ return sfxOn; },
+      setMusic(on){ musicOn = on; store.set('music', on); if (musicGain) musicGain.gain.value = on ? MUSIC_VOL : 0; },
+      setSfx(on){ sfxOn = on; store.set('sfx', on); if (sfxGain) sfxGain.gain.value = on ? 1 : 0; if (!on) try { speechSynthesis.cancel(); } catch (e) {} },
+      pause(){ if (ctx) ctx.suspend().catch(() => {}); },
+      resume(){ if (ctx) ctx.resume().catch(() => {}); }
+    };
+  })();
+
+  let mode = store.get('mode', 'mix');
+  let showHint = store.get('hint', true);
+  let range = store.get('range', 10);
+  let steps = store.get('steps', 1);
+  // mỗi bộ cài đặt có cấp và kỷ lục riêng
+  const cfgKey = () => range === 10 && steps === 1 ? mode : `${mode}_${range}_${steps}`;
+  let level = store.get('level_' + cfgKey(), 0);
+  const quick = () => range === 10;                 // phím 0–10 bấm một lần
+  const sticksOK = () => range === 10 && steps === 1;
+  const factor = () => ({ 10: 1, 20: 1.3, 50: 1.6, 100: 1.8 }[range]) * [1, 1.6, 2.2][steps - 1];
+  let st, raf = null;
+
+  const STREAK = { 3: 'Ba câu liền! Vàooo!', 5: 'Năm câu liền! Tuyệt vời!', 7: 'Bảy câu liền! Siêu quá!', 10: 'Mười câu liền! Vua phá lưới!' };
+  const praise = ['Giỏi quá!', 'Đúng rồi!', 'Tuyệt vời!', 'Siêu nhanh!', 'Chính xác!'];
+  const tryAgain = ['Thử lại nhanh nào!', 'Đếm lại xem!', 'Nghĩ lại nhé!'];
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const rnd = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+
+  function limitFor(i){
+    const [a, b] = LEVELS[level];
+    return (a + (b - a) * (i / (ROUND - 1))) * factor();
+  }
+
+  function makeQ(prev){
+    const R = range;
+    for (let t = 0; t < 200; t++) {
+      const ops = Array.from({ length: steps }, () => mode === 'mix' ? (Math.random() < .5 ? '+' : '-') : (mode === 'plus' ? '+' : '-'));
+      const zeroOK = Math.random() < .08;
+      let cur = ops[0] === '+' ? rnd(1, R - 1) : rnd(2, R);
+      const nums = [cur]; let fail = false;
+      for (const op of ops) {
+        let b;
+        if (op === '+') { if (R - cur < 1) { fail = true; break; } b = rnd(zeroOK ? 0 : 1, R - cur); cur += b; }
+        else { if (cur < 1) { fail = true; break; } b = rnd(zeroOK ? 0 : 1, cur); cur -= b; }
+        nums.push(b);
+      }
+      if (fail) continue;
+      const q = { nums, ops, ans: cur };
+      if (prev && prev.nums.join() === nums.join() && prev.ops.join() === ops.join()) continue;
+      return q;
+    }
+    return { nums: [3, 2], ops: ['+'], ans: 5 };
+  }
+
+  function renderLevel(){
+    lvName.textContent = 'Cấp ' + (level + 1); if (typeof updSum === 'function') updSum();
+    const [a, b] = LEVELS[level];
+    lvInfo.textContent = `${fmtS(a * factor())} → ${fmtS(b * factor())} giây/câu`;
+    lvDown.disabled = level === 0;
+    lvUp.disabled = level === LEVELS.length - 1;
+    const top = store.get('top_' + cfgKey(), 0);
+    bestEl.textContent = top > 0 ? `Cao nhất: Cấp ${top + 1}` : '';
+  }
+  const fmtS = s => (Math.round(s * 10) / 10).toString().replace('.', ',');
+
+  function newRound(){
+    cancelAnimationFrame(raf);
+    Snd.stopMusic();
+    st = { i: 0, input: '', results: [], q: makeQ(), started: false, missThis: 0, locked: false, done: false, qStart: 0, limit: limitFor(0), t0: 0, streak: 0, lastTick: 99 };
+    renderLevel();
+    renderQ();
+    const msg = document.getElementById('msg');
+    msg.innerHTML = '<button class="btn" id="go">Bắt đầu</button>';
+    document.getElementById('go').addEventListener('click', start);
+    setKeysDisabled(true);
+  }
+
+  function start(){
+    st.started = true;
+    st.t0 = performance.now();
+    Snd.unlock();
+    Snd.kickoff();
+    Snd.startMusic(level);
+    beginQ();
+  }
+
+  function beginQ(){
+    st.limit = limitFor(st.i);
+    st.qStart = performance.now();
+    st.missThis = 0; st.locked = false; st.lastTick = 99; st.input = '';
+    renderQ();
+    setKeysDisabled(false);
+    tick();
+  }
+
+  function tick(){
+    cancelAnimationFrame(raf);
+    const loop = () => {
+      if (!st || st.done || st.locked) return;
+      const left = st.limit - (performance.now() - st.qStart) / 1000;
+      const fill = document.getElementById('fill');
+      const frac = Math.max(0, left / st.limit);
+      if (fill) { fill.style.transform = `scaleX(${frac})`; fill.classList.toggle('low', frac < .3); }
+      if (left <= 0) return timeout();
+      const sec = Math.ceil(left);
+      if (sec <= 3 && sec < st.lastTick) { st.lastTick = sec; Snd.tick(); }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  }
+
+  function stickHTML(n, cls){ let s = ''; for (let i = 0; i < n; i++) s += `<span class="stick ${cls}"></span>`; return `<span class="group">${s}</span>`; }
+  function sticksFor(q){
+    if (!sticksOK()) return '';
+    const a = q.nums[0], b = q.nums[1];
+    if (q.ops[0] === '+') return stickHTML(a, '') + '<span class="sym">+</span>' + stickHTML(b, 'b');
+    let s = ''; for (let i = 0; i < a; i++) s += `<span class="stick ${i >= a - b ? 'gone' : ''}"></span>`;
+    return `<span class="group">${s}</span>`;
+  }
+  function renderDots(){
+    let d = '';
+    for (let i = 0; i < ROUND; i++) {
+      const r = st.results[i];
+      const cls = r ? r.kind : (i === st.i ? 'now' : '');
+      d += `<span class="dot ${cls}"></span>`;
+    }
+    return d;
+  }
+
+  // cỡ chữ vừa khít bảng: ước lượng bề rộng phép tính theo em
+  function fitK(q){
+    const digits = q.nums.join('').length;
+    const w = digits * .6 + (q.ops.length + 1) * .62 + Math.max(1.15, String(q.ans).length * .62) + (q.nums.length * 2) * .18;
+    return (92 / w).toFixed(2);
+  }
+  function renderQ(){
+    const q = st.q;
+    slate.innerHTML = `
+      <div class="meta"><div class="dots" aria-label="Câu ${st.i + 1} trên ${ROUND}">${renderDots()}</div><span>${fmtS(st.limit)} giây</span></div>
+      <div class="timer" aria-hidden="true"><div class="fill" id="fill"></div></div>
+      <div class="question" id="qline" aria-live="polite" style="--k:${fitK(q)}">
+        ${q.nums.map((n, i) => (i ? `<span class="op">${q.ops[i - 1] === '+' ? '+' : '−'}</span>` : '') + `<span>${n}</span>`).join('')}<span class="op">=</span><span class="ans ${q.ans > 9 ? 'wide' : ''}" id="ans">?</span>
+      </div>
+      <div class="sticks" id="sticks" ${showHint && sticksOK() ? '' : 'hidden'}>${sticksFor(q)}</div>
+      <div class="msg" id="msg"></div>`;
+  }
+
+  function setKeysDisabled(v){ keysEl.querySelectorAll('.key').forEach(k => k.disabled = v); }
+
+  function typeDigit(d){
+    if (!st || !st.started || st.done || st.locked) return;
+    if (st.input.length >= 3) return;
+    st.input += d;
+    const ansEl = document.getElementById('ans'); ansEl.textContent = st.input; ansEl.className = 'ans' + (st.q.ans > 9 ? ' wide' : '');
+    if (st.input.length >= String(st.q.ans).length) answer(+st.input);
+  }
+  function backspace(){
+    if (!st || !st.started || st.done || st.locked || !st.input) return;
+    st.input = st.input.slice(0, -1);
+    document.getElementById('ans').textContent = st.input || '?';
+  }
+  function submit(){ if (st && st.input) answer(+st.input); }
+
+  function answer(n){
+    if (!st || !st.started || st.done || st.locked) return;
+    st.input = '';
+    const ansEl = document.getElementById('ans');
+    const msg = document.getElementById('msg');
+    const q = st.q;
+    ansEl.textContent = n;
+    if (n === q.ans) {
+      st.locked = true;
+      ansEl.className = 'ans filled-ok pop';
+      st.results[st.i] = { kind: st.missThis ? 'slow' : 'ok', t: (performance.now() - st.qStart) / 1000 };
+      st.streak = st.missThis ? 0 : st.streak + 1;
+      const cheer = STREAK[st.streak];
+      if (cheer) {
+        msg.innerHTML = `<span class="streak">${cheer}</span>`;
+        Snd.correct(); Snd.goal(); Snd.say(cheer);
+        setTimeout(next, 1100);
+      } else {
+        msg.textContent = st.missThis ? 'Đúng rồi!' : pick(praise);
+        Snd.correct();
+        setTimeout(next, 550);
+      }
+    } else {
+      st.missThis++;
+      st.streak = 0;
+      Snd.wrong();
+      ansEl.className = 'ans filled-bad';
+      const ql = document.getElementById('qline');
+      ql.classList.remove('shake'); void ql.offsetWidth; ql.classList.add('shake');
+      msg.textContent = pick(tryAgain);
+      setTimeout(() => { if (!st.locked && !st.done && !st.input) { ansEl.textContent = '?'; ansEl.className = 'ans' + (q.ans > 9 ? ' wide' : ''); } }, 500);
+    }
+  }
+
+  function timeout(){
+    st.locked = true;
+    setKeysDisabled(true);
+    st.results[st.i] = { kind: 'late', t: st.limit };
+    const ansEl = document.getElementById('ans');
+    ansEl.textContent = st.q.ans; ansEl.className = 'ans reveal';
+    document.getElementById('msg').textContent = 'Tiếc quá! Đáp án là ' + st.q.ans;
+    st.streak = 0;
+    Snd.groan(); Snd.say('Tiếc quá!');
+    const s = document.getElementById('sticks'); if (s && sticksOK()) s.hidden = false;
+    setTimeout(next, 1600);
+  }
+
+  function next(){
+    st.i++;
+    if (st.i >= ROUND) return finish();
+    st.q = makeQ(st.q);
+    beginQ();
+  }
+
+  function finish(){
+    st.done = true;
+    cancelAnimationFrame(raf);
+    setKeysDisabled(true);
+    const inTime = st.results.filter(r => r.kind !== 'late').length;
+    const clean = st.results.filter(r => r.kind === 'ok').length;
+    const answered = st.results.filter(r => r.kind !== 'late');
+    const avg = answered.length ? answered.reduce((s, r) => s + r.t, 0) / answered.length : 0;
+    const stars = clean === ROUND ? 3 : inTime >= PASS ? 2 : 1;
+    const passed = inTime >= PASS;
+    const canUp = passed && level < LEVELS.length - 1;
+    if (passed) {
+      const top = store.get('top_' + cfgKey(), 0);
+      const reached = canUp ? level + 1 : level;
+      if (reached > top) store.set('top_' + cfgKey(), reached);
+    }
+    Snd.stopMusic();
+    if (passed) { Snd.win(); setTimeout(() => Snd.say(clean === ROUND ? 'Mười trên mười! Con là vua phá lưới!' : 'Chúc mừng con! Giỏi lắm!'), 1200); }
+    else { Snd.lose(); setTimeout(() => Snd.say('Tiếc quá! Mình cố lên lần sau nhé!'), 900); }
+    const titles = passed
+      ? (canUp ? `Qua cấp ${level + 1}! Lên cấp ${level + 2} nào!` : 'Con đã về đích cấp cao nhất!')
+      : `Cần đúng kịp giờ ${PASS}/${ROUND} câu để lên cấp`;
+    slate.innerHTML = `
+      <div class="result">
+        <div class="stars" aria-label="${stars} sao">${'★'.repeat(stars)}<span class="off">${'★'.repeat(3 - stars)}</span></div>
+        <h2>${titles}</h2>
+        <div class="stats">
+          <div><b>${inTime}/${ROUND}</b>đúng kịp giờ</div>
+          <div><b>${clean}</b>đúng ngay</div>
+          <div><b>${fmtS(avg)}s</b>mỗi câu</div>
+        </div>
+        <div class="row">
+          ${canUp ? '<button class="btn" id="up">Lên cấp</button><button class="btn ghost" id="again">Chơi lại cấp này</button>'
+                  : '<button class="btn" id="again">Chơi lại</button>'}
+        </div>
+      </div>`;
+    document.getElementById('again').addEventListener('click', () => { newRound(); start(); });
+    const up = document.getElementById('up');
+    if (up) up.addEventListener('click', () => { setLevel(level + 1); start(); });
+    renderLevel();
+  }
+
+  function setLevel(l){
+    level = Math.max(0, Math.min(LEVELS.length - 1, l));
+    store.set('level_' + cfgKey(), level);
+    newRound();
+  }
+
+  // tạm dừng khi chuyển tab: tính lại giờ từ đầu câu
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) Snd.pause(); else Snd.resume();
+    if (!document.hidden && st && st.started && !st.done && !st.locked) { st.qStart = performance.now(); tick(); }
+  });
+
+  let kpos = store.get('kpos', 'c');
+  function renderKeys(){
+    if (quick()) {
+      keysEl.className = 'keys quick pos-' + kpos;
+      keysEl.innerHTML = [1,2,3,4,5,6,7,8,9,0,10].map(n => `<button class="key" id="k${n}" data-n="${n}" aria-label="${n}">${n}</button>`).join('');
+    } else {
+      keysEl.className = 'keys pos-' + kpos;
+      keysEl.innerHTML = [1,2,3,4,5,6,7,8,9].map(n => `<button class="key" id="k${n}" data-d="${n}" aria-label="${n}">${n}</button>`).join('')
+        + '<button class="key fn" id="kdel" data-fn="del" aria-label="Xoá">⌫</button><button class="key" id="k0" data-d="0" aria-label="0">0</button><button class="key fn ok" id="kok" data-fn="ok" aria-label="Xong">✓</button>';
+    }
+    if (st) setKeysDisabled(!st.started || st.done || st.locked);
+  }
+  keysEl.addEventListener('click', e => {
+    const k = e.target.closest('.key'); if (!k) return;
+    if (k.dataset.n !== undefined) answer(+k.dataset.n);
+    else if (k.dataset.d !== undefined) typeDigit(k.dataset.d);
+    else if (k.dataset.fn === 'del') backspace();
+    else submit();
+  });
+
+  let buf = '', bufT;
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && st && !st.started) { start(); return; }
+    if (!quick()) {
+      if (/^[0-9]$/.test(e.key)) typeDigit(e.key);
+      else if (e.key === 'Backspace') backspace();
+      else if (e.key === 'Enter') submit();
+      return;
+    }
+    if (!/^[0-9]$/.test(e.key) || !st || !st.started || st.done) return;
+    buf += e.key; clearTimeout(bufT);
+    if (buf === '1') { bufT = setTimeout(() => { answer(1); buf = ''; }, 350); return; }
+    const n = +buf; buf = '';
+    if (n <= 10) answer(n);
+  });
+
+  function setMode(m){
+    mode = m; store.set('mode', m);
+    level = store.get('level_' + cfgKey(), 0);
+    document.querySelectorAll('.modes .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.mode === m));
+    newRound();
+  }
+  document.querySelectorAll('.modes .chip').forEach(c => c.addEventListener('click', () => setMode(c.dataset.mode)));
+  lvUp.addEventListener('click', () => setLevel(level + 1));
+  lvDown.addEventListener('click', () => setLevel(level - 1));
+
+  function sample(){
+    const ex = { 1: '7 + 2', 2: '7 + 2 − 4', 3: '7 + 2 − 4 + 3' }[steps];
+    return range === 10 ? ex : ex.replace('7', range === 20 ? '15' : range === 50 ? '38' : '64');
+  }
+  function updSum(){
+    const M = { plus: '+ Cộng', minus: '− Trừ', mix: '+ − Cộng trừ' };
+    document.getElementById('sumLv').textContent = 'Cấp ' + (level + 1);
+    document.getElementById('sumTx').textContent = `${M[mode]} · phạm vi ${range} · ${steps} phép tính`;
+  }
+  function renderSettings(){
+    document.querySelectorAll('#segRange .chip').forEach(c => c.setAttribute('aria-pressed', +c.dataset.range === range));
+    document.querySelectorAll('#segSteps .chip').forEach(c => c.setAttribute('aria-pressed', +c.dataset.steps === steps));
+    updSum();
+    document.getElementById('setNote').textContent = `Ví dụ: ${sample()} = ?  · Thời gian mỗi câu được cộng thêm cho phép tính dài hơn.`
+      + (sticksOK() ? '' : ' Que tính chỉ dùng cho phạm vi 10, 1 phép tính.');
+    hintBtn.disabled = !sticksOK();
+  }
+  function applySettings(){
+    store.set('range', range); store.set('steps', steps);
+    level = store.get('level_' + cfgKey(), 0);
+    renderSettings(); renderKeys(); newRound();
+  }
+  document.querySelectorAll('#segRange .chip').forEach(c => c.addEventListener('click', () => { range = +c.dataset.range; applySettings(); }));
+  document.querySelectorAll('#segSteps .chip').forEach(c => c.addEventListener('click', () => { steps = +c.dataset.steps; applySettings(); }));
+  const syncPos = () => document.querySelectorAll('#segPos .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.pos === kpos));
+  document.querySelectorAll('#segPos .chip').forEach(c => c.addEventListener('click', () => { kpos = c.dataset.pos; store.set('kpos', kpos); syncPos(); renderKeys(); }));
+  syncPos();
+
+  hintBtn.addEventListener('click', () => {
+    showHint = !showHint; store.set('hint', showHint);
+    hintBtn.setAttribute('aria-pressed', showHint);
+    const s = document.getElementById('sticks'); if (s) s.hidden = !showHint || !sticksOK();
+  });
+  hintBtn.setAttribute('aria-pressed', showHint);
+
+  const musicBtn = document.getElementById('musicToggle');
+  const sfxBtn = document.getElementById('sfxToggle');
+  musicBtn.setAttribute('aria-pressed', Snd.music);
+  sfxBtn.setAttribute('aria-pressed', Snd.sfx);
+  musicBtn.addEventListener('click', () => {
+    Snd.setMusic(!Snd.music); musicBtn.setAttribute('aria-pressed', Snd.music);
+    if (Snd.music && st && st.started && !st.done) Snd.startMusic(level);
+  });
+  sfxBtn.addEventListener('click', () => {
+    Snd.setSfx(!Snd.sfx); sfxBtn.setAttribute('aria-pressed', Snd.sfx);
+    if (Snd.sfx) Snd.correct();
+  });
+
+  /* toàn màn hình: giữ nguyên giao diện, chỉ phóng ra cả màn hình */
+  const fsBtn = document.getElementById('fsBtn');
+  let wake = null;
+  const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function syncFs(){ fsBtn.textContent = isFull() ? '✕ Thoát toàn màn hình' : '⛶ Toàn màn hình'; }
+  async function toggleFs(){
+    try {
+      if (isFull()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (wake) { wake.release(); wake = null; } return; }
+      const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (!req) throw 0;
+      await req.call(el);
+      try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+    } catch (e) {
+      fsBtn.textContent = 'Mở bằng Chrome để toàn màn hình';
+      setTimeout(syncFs, 2500);
+    }
+  }
+  document.addEventListener('fullscreenchange', syncFs);
+  document.addEventListener('webkitfullscreenchange', syncFs);
+  fsBtn.addEventListener('click', toggleFs);
+
+  document.querySelectorAll('.modes .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.mode === mode));
+  /* bảng cài đặt */
+  const sheet = document.getElementById('sheet');
+  function openSheet(){ if (st && st.started && !st.done) newRound(); sheet.hidden = false; document.getElementById('sheetX').focus(); }
+  function closeSheet(){ sheet.hidden = true; document.getElementById('gearBtn').focus(); }
+  document.getElementById('gearBtn').addEventListener('click', openSheet);
+  document.getElementById('sumBar').addEventListener('click', openSheet);
+  document.getElementById('sheetX').addEventListener('click', closeSheet);
+  document.getElementById('sheetOk').addEventListener('click', closeSheet);
+  sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+  renderSettings();
+  renderKeys();
+  newRound();
+})();
+</script>
+
+</body></html>

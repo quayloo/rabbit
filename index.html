@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><style>html,body{margin:0}</style>
+<title>Bé Học Mỗi Ngày</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: a school bag of apps — grouped shelves (Học bài, Cờ vua, Bóng đá, Bố mẹ), each app a big coloured card the child can tap */
+:root {
+  --page: #fff6e6;
+  --ink: #2a2140;
+  --ink-soft: #6a5f80;
+  --card: #ffffff;
+  --line: #f0dfc2;
+  --math: #2f6e5a;
+  --eng: #2f7fe0;
+  --learn: #e2563f;
+  --chess: #6b4bc4;
+  --ball: #22a86a;
+  --parent: #8a7a5a;
+  --display: "Baloo 2", "Nunito", system-ui, sans-serif;
+  --body: "Nunito", system-ui, sans-serif;
+  color-scheme: light;
+}
+body {
+  background: var(--page); color: var(--ink); font-family: var(--body); font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 640px; margin: 0 auto; padding-block: 18px 32px; display: flex; flex-direction: column; gap: 22px; }
+.hello h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 2.2rem; line-height: 1; letter-spacing: -.01em; text-wrap: balance; }
+.hello h1 span { color: var(--learn); }
+.hello p { margin: 6px 0 0; color: var(--ink-soft); font-weight: 700; }
+.shelf { display: flex; flex-direction: column; gap: 10px; }
+.shelf h2 { margin: 0; font-family: var(--display); font-size: 1.15rem; color: var(--ink-soft); letter-spacing: .02em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.card {
+  display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink);
+  background: var(--card); border-radius: 20px; padding: 14px; box-shadow: 0 5px 0 var(--line); min-width: 0;
+}
+.card:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--line); }
+.card:focus-visible { outline: 3px solid var(--c); outline-offset: 3px; }
+.ic { width: 64px; height: 64px; border-radius: 18px; background: var(--c); display: grid; place-items: center; font-size: 2.1rem; flex: none; }
+.tx { min-width: 0; flex: 1; }
+.tx b { display: block; font-family: var(--display); font-size: 1.3rem; line-height: 1.1; }
+.tx small { display: block; color: var(--ink-soft); font-weight: 700; line-height: 1.35; margin-top: 2px; }
+.go { color: var(--c); font-family: var(--display); font-weight: 800; font-size: 1.6rem; flex: none; }
+.card.last { box-shadow: 0 5px 0 var(--c); }
+.tag { display: inline-block; margin-top: 4px; font-size: .75rem; font-weight: 800; color: var(--c); }
+.hello { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.fsbtn { width: 44px; height: 44px; border: 2px solid var(--ink); background: var(--card); color: var(--ink); border-radius: 50%; padding: 0; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 var(--line); flex: none; }
+.fsbtn.shake { animation: fshake .4s; } @keyframes fshake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.fsbtn:focus-visible { outline: 3px solid var(--learn); outline-offset: 2px; }
+.ext { display: block; margin-top: 3px; font-size: .78rem; font-weight: 800; color: var(--ink-soft); }
+.stage { position: fixed; z-index: 20; inset: 0; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; background: var(--page); }
+.stage iframe { display: block; width: 100%; height: 100%; border: 0; }
+body.inapp { overflow: hidden; }
+.note { color: var(--ink-soft); font-size: .9rem; font-weight: 700; line-height: 1.45; border-top: 2px dashed var(--line); padding-top: 14px; }
+
+.kids { background: var(--card); border-radius: 18px; box-shadow: 0 4px 0 var(--line); overflow: hidden; }
+.kbar { width: 100%; border: 0; background: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; text-align: left; color: var(--ink); }
+.kbar:focus-visible { outline: 3px solid var(--learn); outline-offset: -3px; border-radius: 18px; }
+.kav { width: 40px; height: 40px; border-radius: 50%; background: #ffe9e3; display: grid; place-items: center; font-size: 1.5rem; flex: none; }
+.kname { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.1; }
+.kname small { color: var(--ink-soft); font-weight: 800; font-size: .72rem; } .kname b { font-family: var(--display); font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kchg { color: var(--learn); font-weight: 800; font-size: .88rem; flex: none; }
+.kpanel { border-top: 2px dashed var(--line); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.kpanel[hidden] { display: none; }
+.krow { display: flex; flex-wrap: wrap; gap: 8px; }
+.kid { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 12px 3px 3px; display: flex; align-items: center; gap: 6px; cursor: pointer; font: 800 .95rem var(--display); color: var(--ink); }
+.kid .av { width: 30px; height: 30px; border-radius: 50%; background: var(--page); display: grid; place-items: center; font-size: 1.15rem; }
+.kid[aria-checked="true"] { border-color: var(--learn); background: #ffe9e3; }
+.kid.add, .kid.edit { color: var(--ink-soft); border-style: dashed; padding: 3px 12px; }
+.kid:focus-visible { outline: 3px solid var(--learn); outline-offset: 2px; }
+.kform { display: flex; flex-direction: column; gap: 8px; }
+.kform[hidden] { display: none; }
+.kform input { border: 3px solid var(--line); border-radius: 14px; padding: 9px 12px; font: 800 1.1rem var(--display); color: var(--ink); width: 100%; box-sizing: border-box; }
+.kform input:focus { outline: none; border-color: var(--learn); }
+.kavs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.kavs button { border: 3px solid var(--line); background: #fff; border-radius: 12px; font-size: 1.4rem; padding: 2px 0; cursor: pointer; }
+.kavs button[aria-pressed="true"] { border-color: var(--learn); background: #ffe9e3; }
+.kbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.kb { border: 2px solid var(--ink); background: #fff; border-radius: 999px; padding: 5px 16px; font: 800 .95rem var(--display); cursor: pointer; color: var(--ink); }
+.kb.ok { background: var(--learn); border-color: var(--learn); color: #fff; }
+.kb.del { margin-left: auto; color: #d93a3a; border-color: #d93a3a; } .kb.del.arm { background: #d93a3a; color: #fff; }
+.kmsg { margin: 0; font-size: .85rem; font-weight: 700; color: var(--ink-soft); min-height: 1em; }
+</style>
+
+<div class="app">
+  <header class="hello">
+    <div><h1>Bé học <span>mỗi ngày</span></h1>
+    <p id="hi">Chạm vào một ô để vào học.</p></div>
+    <button class="fsbtn" id="fsBtn" aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </header>
+
+  <section class="kids" aria-label="Bé đang học">
+    <button type="button" class="kbar" id="kbar" aria-expanded="false"><span class="kav" id="kav">🐰</span><span class="kname"><small>Bé đang học</small><b id="kname0">Bé</b></span><span class="kchg">Đổi bé ▾</span></button>
+    <div class="kpanel" id="kpanel" hidden>
+      <div class="krow" id="krow" role="radiogroup" aria-label="Chọn bé"></div>
+      <div class="kform" id="kform" hidden>
+        <input id="kname" maxlength="16" placeholder="Tên của bé" autocomplete="off">
+        <div class="kavs" id="kavs"></div>
+        <div class="kbtns"><button type="button" class="kb ok" id="kSave">Lưu</button><button type="button" class="kb" id="kCancel">Huỷ</button><button type="button" class="kb del" id="kDel" hidden>Xoá hồ sơ</button></div>
+        <p class="kmsg" id="kmsg"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <a class="card" style="--c:var(--math)" href="toan.html" data-id="toan">
+      <span class="ic">🧮</span><span class="tx"><b>Bảng con tính nhanh</b><small>Cộng trừ nhẩm nhanh, phạm vi 10–100, 10 cấp tốc độ</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:#ff7a59" href="on-tieng-anh.html" data-id="boe" data-top="#e9f7f1">
+      <span class="ic">🐰</span><span class="tx"><b>Bé Ôn Tiếng Anh</b><small>Ôn 4 kỹ năng theo Unit trên lớp, âm & ghép vần, 30+ chủ đề từ vựng</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:var(--chess)" href="co-vua.html" data-id="co" data-top="#CDE9FF">
+      <span class="ic">🦉</span><span class="tx"><b>Cờ Vua Cùng Cú Bông</b><small>Học cờ vua bằng tiếng Việt, từ dễ đến khó</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:var(--ball)" href="the-luat.html" data-id="luat">
+      <span class="ic">⚽</span><span class="tx"><b>Bóng Đá Nhí</b><small>Luật, kỹ năng, phối hợp, thi đấu và xếp hạng</small></span><span class="go">›</span></a>
+  </div>
+
+  <p class="note" id="note">Trong mỗi trò, bấm nút 🏠 ở góc trên bên trái để quay về đây. Mỗi bé có tiến độ riêng, lưu trên chính máy đang chơi.</p>
+</div>
+<div class="stage" id="stage" hidden><iframe id="frame" title="Trò chơi" allow="autoplay; microphone; fullscreen 'none'"></iframe></div>
+
+<script>
+(function(){
+  const fsBtn = document.getElementById('fsBtn');
+  const FS_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>', FS_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const stage = document.getElementById('stage'), frame = document.getElementById('frame');
+  let wake = null;
+  const tellFrame = msg => { try { frame.contentWindow && frame.contentWindow.postMessage(msg, '*'); } catch (e) {} };
+  const syncFs = () => {
+    fsBtn.innerHTML = isFull() ? FS_OFF : FS_ON; fsBtn.setAttribute('aria-label', isFull() ? 'Thoát toàn màn hình' : 'Toàn màn hình'); fsBtn.title = fsBtn.getAttribute('aria-label');
+    tellFrame({ hub: 'fsstate', full: isFull() });
+  };
+  async function toggleFs(){
+    try {
+      if (isFull()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (wake) { wake.release(); wake = null; } return; }
+      const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (!req) throw 0; await req.call(el);
+      try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+    } catch (e) { fsBtn.classList.add('shake'); setTimeout(() => fsBtn.classList.remove('shake'), 500); tellFrame({ hub: 'fsfail' }); }
+  }
+  fsBtn.addEventListener('click', toggleFs);
+  async function goFull(){ try { const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen; if (!req) return; await req.call(el); try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {} } catch (e) {} }
+  document.addEventListener('fullscreenchange', syncFs);
+  document.addEventListener('webkitfullscreenchange', syncFs);
+
+  /* mở trò ngay trong trang này (khung bên trong), để chế độ toàn màn hình không bị tắt khi đổi trò */
+  let current = null, guard = null;
+  function openApp(href, push){
+    current = href;
+    document.body.classList.add('inapp');
+    stage.hidden = false; stage.style.background = '';
+    try { frame.contentWindow.location.replace(href); } catch (e) { frame.src = href; }
+    if (push) { try { history.pushState({ app: href }, '', '#' + href.replace('.html', '')); } catch (e) {} }
+    clearTimeout(guard);
+    // nếu khung không mở được trang (trình xem chặn), chuyển hẳn sang trang đó
+    guard = setTimeout(() => { if (current === href && !frameOK()) location.href = href; }, 6000);
+  }
+  function frameOK(){ try { const d = frame.contentDocument; return !!(d && d.body && d.location.href.indexOf(current) >= 0); } catch (e) { return false; } }
+  frame.addEventListener('load', () => {
+    if (!current) return;
+    if (!frameOK()) { location.href = current; return; }
+    clearTimeout(guard);
+    // tô phần mép trên/dưới (vùng tai thỏ) cùng màu nền của trò để không lộ trang chính
+    try { const d = frame.contentDocument, cs = c => getComputedStyle(c).backgroundColor, clear = v => !v || v === 'transparent' || v === 'rgba(0, 0, 0, 0)';
+      const card = document.querySelector(`.card[href="${current}"]`), top = card && card.dataset.top;
+      let bg = cs(d.body); if (clear(bg)) bg = cs(d.documentElement); stage.style.background = top || (clear(bg) ? '#fff' : bg); } catch (e) {}
+    try { frame.contentWindow.focus(); } catch (e) {}
+    syncFs();
+  });
+  function closeApp(fromPop){
+    if (!current) return;
+    current = null; clearTimeout(guard);
+    // nếu trò bên trong đã tự chiếm toàn màn hình, trả lại cho trang chính
+    try { const fe = document.fullscreenElement; if (fe && fe !== document.documentElement) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
+    stage.hidden = true;
+    try { frame.contentWindow.location.replace('about:blank'); } catch (e) {}
+    document.body.classList.remove('inapp');
+    // bỏ dấu # của trò trên thanh địa chỉ (không dùng history.back vì trò bên trong có thể tự thêm lịch sử)
+    if (!fromPop) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    markLast(); renderKids();
+  }
+  window.addEventListener('popstate', () => {
+    const h = location.hash.slice(1);
+    if (h && document.querySelector(`.card[href="${h}.html"]`)) openApp(h + '.html', false); else closeApp(true);
+  });
+  window.addEventListener('message', e => {
+    if (e.source !== frame.contentWindow || !e.data || typeof e.data !== 'object') return;
+    if (e.data.hub === 'home') closeApp(false);
+    else if (e.data.hub === 'fs') toggleFs();
+    else if (e.data.hub === 'hello') syncFs();
+    else if (e.data.hub === 'kids') { closeApp(false); setPanel(true); window.scrollTo(0, 0); kbar.focus(); }
+  });
+
+  // đánh dấu trò vừa chơi gần nhất để bé dễ quay lại
+  function markLast(){
+    let last = null;
+    try { last = localStorage.getItem('last'); } catch (e) {}
+    document.querySelectorAll('.card').forEach(a => {
+      a.classList.toggle('last', a.dataset.id === last);
+      const t = a.querySelector('.tag'); if (t) t.remove();
+      if (a.dataset.id === last) a.querySelector('.tx').insertAdjacentHTML('beforeend', '<span class="tag">● Vừa chơi</span>');
+    });
+  }
+  document.querySelectorAll('.card').forEach(a => {
+    a.addEventListener('click', e => {
+      try { localStorage.setItem('last', a.dataset.id); } catch (err) {}
+      if (a.target === '_blank') return;
+      e.preventDefault(); if (!isFull()) goFull(); openApp(a.getAttribute('href'), true);
+    });
+  });
+
+  /* ===== Chọn bé: dùng chung hồ sơ với Bé Ôn Tiếng Anh, Bảng con tính nhanh, Toy Box ===== */
+  const KK = 'boe:kids', AVS = ['🐰', '🐻', '🐼', '🦊', '🐯', '🐸', '🐵', '🦁', '🐨', '🐧', '🦄', '🐶', '🐱', '🐥'];
+  const kidKey = id => id === 'k1' ? 'boe:v1' : 'boe:v1:' + id;
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function getKids(){ let K = null; try { K = JSON.parse(localStorage.getItem(KK) || 'null'); } catch (e) {}
+    if (!K || !Array.isArray(K.list) || !K.list.length) K = { list: [{ id: 'k1', name: 'Bé', av: '🐰' }], cur: 'k1' };
+    if (!K.list.some(k => k.id === K.cur)) K.cur = K.list[0].id; return K; }
+  const putKids = K => { try { localStorage.setItem(KK, JSON.stringify(K)); } catch (e) {} };
+  const boeOf = id => { try { return JSON.parse(localStorage.getItem(kidKey(id)) || 'null'); } catch (e) { return null; } };
+  const krow = document.getElementById('krow'), kform = document.getElementById('kform'), kname = document.getElementById('kname'), kmsg = document.getElementById('kmsg'), kdel = document.getElementById('kDel');
+  let editing = null, pickAv = AVS[0];
+  function renderKids(){
+    const K = getKids(), cur = K.list.find(k => k.id === K.cur);
+    document.getElementById('kav').textContent = cur.av; document.getElementById('kname0').textContent = cur.name;
+    krow.innerHTML = K.list.map(k => `<button type="button" class="kid" role="radio" aria-checked="${k.id === K.cur}" data-id="${k.id}"><span class="av">${k.av}</span>${esc(k.name)}</button>`).join('') +
+      `<button type="button" class="kid edit" data-id="~">✏️ Sửa</button>` + (K.list.length < 8 ? `<button type="button" class="kid add" data-id="+">＋ Thêm bé</button>` : '');
+    const h = new Date().getHours(), g = h < 11 ? 'Chào buổi sáng' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+    document.getElementById('hi').innerHTML = `${g}, <b>${esc(cur.name)}</b>! Chạm vào một ô để vào học.`;
+  }
+  const kpanel = document.getElementById('kpanel'), kbar = document.getElementById('kbar');
+  const setPanel = v => { kpanel.hidden = !v; kbar.setAttribute('aria-expanded', v); if (!v) kform.hidden = true; };
+  kbar.addEventListener('click', () => setPanel(kpanel.hidden));
+  function openForm(k){
+    editing = k; const K = getKids(); pickAv = k ? k.av : AVS[K.list.length % AVS.length];
+    kname.value = k ? k.name : ''; kmsg.textContent = ''; kdel.hidden = !k || K.list.length < 2; kdel.classList.remove('arm'); kdel.textContent = 'Xoá hồ sơ';
+    document.getElementById('kavs').innerHTML = AVS.map(a => `<button type="button" data-av="${a}" aria-pressed="${a === pickAv}">${a}</button>`).join('');
+    kform.hidden = false; kname.focus();
+  }
+  krow.addEventListener('click', e => { const b = e.target.closest('.kid'); if (!b) return;
+    if (b.dataset.id === '+') { openForm(null); return; }
+    if (b.dataset.id === '~') { const K = getKids(); openForm(K.list.find(k => k.id === K.cur)); return; }
+    const K = getKids(); K.cur = b.dataset.id; putKids(K); renderKids(); setPanel(false); });
+  document.getElementById('kavs').addEventListener('click', e => { const b = e.target.closest('[data-av]'); if (!b) return; pickAv = b.dataset.av; document.querySelectorAll('#kavs button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  document.getElementById('kCancel').addEventListener('click', () => { kform.hidden = true; });
+  document.getElementById('kSave').addEventListener('click', () => { const name = kname.value.trim().slice(0, 16); if (!name) { kmsg.textContent = 'Nhập tên của bé nhé.'; kname.focus(); return; }
+    const K = getKids();
+    if (editing) { const k = K.list.find(x => x.id === editing.id); if (k) { k.name = name; k.av = pickAv; } }
+    else { let n = 2; while (K.list.some(k => k.id === 'k' + n)) n++; const id = 'k' + n; try { localStorage.removeItem(kidKey(id)); } catch (e) {} K.list.push({ id, name, av: pickAv }); K.cur = id; }
+    putKids(K); renderKids(); setPanel(false); });
+  kname.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('kSave').click(); });
+  kdel.addEventListener('click', () => { if (!editing) return;
+    if (!kdel.classList.contains('arm')) { kdel.classList.add('arm'); kdel.textContent = 'Bấm lần nữa: xoá hết tiến độ của ' + editing.name; return; }
+    const K = getKids(), id = editing.id; K.list = K.list.filter(k => k.id !== id); if (K.cur === id) K.cur = K.list[0].id;
+    try { localStorage.removeItem(kidKey(id)); Object.keys(localStorage).filter(k => k.startsWith('toan:' + id + ':') || k.startsWith('eng:' + id + ':')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    putKids(K); kform.hidden = true; renderKids(); });
+  renderKids();
+  markLast();
+  const h0 = location.hash.slice(1);
+  if (h0 && document.querySelector(`.card[href="${h0}.html"]`)) { try { history.replaceState(null, '', location.pathname); history.pushState({}, '', '#' + h0); } catch (e) {} openApp(h0 + '.html', false); }
+})();
+</script>
+
+</html>
