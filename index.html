@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><style>html,body{margin:0}</style>
 <title>Bé Học Mỗi Ngày</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
 /* Layout: a school bag of apps — grouped shelves (Học bài, Cờ vua, Bóng đá, Bố mẹ), each app a big coloured card the child can tap */
 :root {
@@ -97,6 +97,34 @@ body.inapp { overflow: hidden; }
 .kids { border-radius: 16px; box-shadow: 0 3px 0 var(--line); }
 .kav { width: 36px; height: 36px; font-size: 1.3rem; }
 .fsbtn { width: 42px; height: 42px; border-width: 0; border-radius: 14px; box-shadow: 0 3px 0 var(--line); }
+
+/* ===== Phong cách B · Pastel mềm ===== */
+:root { --page: #f4f1ff; --ink: #2d2550; --ink-soft: #776fa3; --line: #e6e0ff; --learn: #8b7cf6; --display: "Quicksand", "Nunito", system-ui, sans-serif; --body: "Quicksand", "Nunito", system-ui, sans-serif; --shadow: 0 10px 24px rgba(91,75,196,.11); --shadow-s: 0 4px 12px rgba(91,75,196,.10); }
+body { font-weight: 600; background: var(--page) radial-gradient(circle at 108% -6%, #e6e0ff 0 170px, transparent 171px) no-repeat; }
+.app { gap: 18px; }
+.hello h1 { font-size: 1.85rem; font-weight: 700; letter-spacing: -.01em; }
+.hello h1 span { color: #8b7cf6; }
+.hello p { font-weight: 600; }
+.fsbtn { border-radius: 50%; border: 0; background: #fff; box-shadow: var(--shadow-s); }
+.kids { border-radius: 22px; box-shadow: var(--shadow-s); }
+.kav { background: #ece8ff; }
+.kchg { color: #5b4bc4; font-weight: 700; }
+.kid { border: 0; background: #f4f1ff; font-weight: 700; } .kid[aria-checked="true"] { background: #8b7cf6; color: #fff; }
+.kid .av { background: #fff; }
+.kid.add, .kid.edit { background: transparent; border: 2px dashed #d9d1ff; }
+.kb { border: 0; background: #f1eeff; font-weight: 700; } .kb.ok { background: #8b7cf6; color: #fff; }
+.kform input { border: 2px solid #e6e0ff; border-radius: 16px; font-weight: 700; }
+.kavs button { border: 2px solid transparent; background: #f4f1ff; border-radius: 14px; } .kavs button[aria-pressed="true"] { border-color: #8b7cf6; background: #fff; }
+.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.card { flex-direction: column; align-items: flex-start; gap: 16px; padding: 16px; border-radius: 24px; background: color-mix(in srgb, var(--c) 17%, #fff); box-shadow: none; color: color-mix(in srgb, var(--c) 45%, #1d1640); min-height: 150px; position: relative; }
+.card:active { transform: scale(.97); box-shadow: none; }
+.card.last { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 45%, #fff); }
+.card .ic { width: 46px; height: 46px; border-radius: 50%; background: #fff; font-size: 1.45rem; }
+.card .tx b { font-size: 1.08rem; font-weight: 700; color: #2d2550; }
+.card .tx small { font-size: .78rem; font-weight: 600; color: color-mix(in srgb, var(--c) 40%, #2d2550); }
+.card .go { display: none; }
+.tag { font-weight: 700; }
+.note { border-top: 0; background: #fff; border-radius: 20px; padding: 12px 14px; box-shadow: var(--shadow-s); font-weight: 600; }
 </style>
 
 <div class="app">
@@ -120,14 +148,14 @@ body.inapp { overflow: hidden; }
   </section>
 
   <div class="grid">
-    <a class="card" style="--c:var(--math)" href="toan.html" data-id="toan">
-      <span class="ic">🧮</span><span class="tx"><b>Bảng con tính nhanh</b><small>Cộng trừ nhẩm nhanh, phạm vi 10–100, 10 cấp tốc độ</small></span><span class="go">›</span></a>
-    <a class="card" style="--c:#ff7a59" href="on-tieng-anh.html" data-id="boe" data-top="#e9f7f1">
-      <span class="ic">🐰</span><span class="tx"><b>Bé Ôn Tiếng Anh</b><small>Ôn 4 kỹ năng theo Unit trên lớp, âm & ghép vần, 30+ chủ đề từ vựng</small></span><span class="go">›</span></a>
-    <a class="card" style="--c:var(--chess)" href="co-vua.html" data-id="co" data-top="#CDE9FF">
-      <span class="ic">🦉</span><span class="tx"><b>Cờ Vua Cùng Cú Bông</b><small>Học cờ vua bằng tiếng Việt, từ dễ đến khó</small></span><span class="go">›</span></a>
-    <a class="card" style="--c:var(--ball)" href="the-luat.html" data-id="luat">
-      <span class="ic">⚽</span><span class="tx"><b>Bóng Đá Nhí</b><small>Luật, kỹ năng, phối hợp, thi đấu và xếp hạng</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:#21a376" href="toan.html" data-id="toan">
+      <span class="ic">🧮</span><span class="tx"><b>Tính nhanh</b><small>Cộng trừ nhẩm · 10 cấp</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:#7c66f0" href="on-tieng-anh.html" data-id="boe" data-top="#f4f1ff">
+      <span class="ic">🐰</span><span class="tx"><b>Tiếng Anh</b><small>Unit · âm · 700+ từ</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:#3b8de0" href="co-vua.html" data-id="co" data-top="#f4f1ff">
+      <span class="ic">🦉</span><span class="tx"><b>Cờ vua</b><small>Học cờ từ dễ đến khó</small></span><span class="go">›</span></a>
+    <a class="card" style="--c:#f0743e" href="the-luat.html" data-id="luat" data-top="#f4f1ff">
+      <span class="ic">⚽</span><span class="tx"><b>Bóng Đá Nhí</b><small>Luật & kỹ năng</small></span><span class="go">›</span></a>
   </div>
 
   <p class="note" id="note">Trong mỗi trò, bấm nút 🏠 ở góc trên bên trái để quay về đây. Mỗi bé có tiến độ riêng, lưu trên chính máy đang chơi.</p>
