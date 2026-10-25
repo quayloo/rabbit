@@ -486,6 +486,9 @@ textarea.bk { width: 100%; box-sizing: border-box; border: 3px solid var(--line)
 .hubtitle { font-size: 1.9rem; margin: -6px 0 -10px; } :root { --hk-sh: var(--line); }
 .btn.recon { animation: micpulse 1s infinite; }
 #after { flex-wrap: wrap; justify-content: center; }
+.asrst { position: relative; overflow: hidden; width: 100%; box-sizing: border-box; background: #fff7e0; border-radius: 12px; padding: 6px 10px; font-size: .85rem; font-weight: 700; color: var(--soft); text-align: left; }
+.asrst i { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--sun); border-radius: 2px; transition: width .3s; }
+.mic:disabled { opacity: .7; }
 </style>
 
 <div id="app"></div>
@@ -2330,6 +2333,13 @@ function parents(){
   on('test', () => speak('Hello! I am Mochi. Let us learn English together.'));
   on('mt', async b => { const m = document.getElementById('mtm'); if (micState === 'frame') { m.innerHTML = '🔒 App đang mở trong link Claude – khung này <b>không cho phép micro</b> nên Chrome không hỏi quyền. Bài Nói sẽ để bé tự chấm. Muốn Mochi chấm phát âm, hãy tải file app riêng và mở bằng Chrome.'; return; } if (!SRC) { m.textContent = 'Trình duyệt này không có nhận giọng nói. Hãy mở app bằng Chrome trên máy tính hoặc Android.'; return; }
     m.textContent = '🎤 Hãy nói: "Hello Mochi"…'; b.disabled = true;
+    if (useASR()) { try { const rec = await recordUtter(5000); if (!rec.spoke || !rec.blob) { m.textContent = 'Chưa nghe thấy gì, thử nói to hơn nhé.'; b.disabled = false; return; }
+        micState = 'ok'; if (S.set.mic === false) { S.set.mic = true; save(); }
+        asrOnProg = pct => { m.innerHTML = `✅ Micro thu được rồi! ⏳ Đang tải đôi tai của Mochi (chỉ lần đầu)… <b>${pct}%</b>`; }; asrOnProg(asrPct);
+        const fn = await loadASR(); m.textContent = '👂 Mochi đang nghe lại…'; const t = await fn(await blobTo16k(rec.blob)); const sc = scoreSay('hello Mochi', [{ t }]);
+        m.innerHTML = `✅ Micro và đôi tai của Mochi hoạt động! Nghe được: “${esc(t)}” – điểm ${sc.score}.`; try { new Audio(URL.createObjectURL(rec.blob)).play().catch(() => {}); } catch (e) {} }
+      catch (e) { m.innerHTML = '❌ ' + (MIC_ERR[e] || 'Chưa tải được đôi tai của Mochi (cần mạng ổn định). Bài Nói sẽ dùng cách chấm khác.') + ` <small>(mã: ${esc(String(e && e.message || e))})</small>`; }
+      b.disabled = false; return; }
     try { const r = await listenOnce(5000); micState = 'ok'; if (S.set.mic === false) { S.set.mic = true; save(); } const sc = scoreSay('hello Mochi', r.alts); m.textContent = `✅ Micro hoạt động! Nghe được: “${r.alts[0].t}” – điểm ${sc.score}.`; }
     catch (e) { if (e !== 'no-speech') micState = 'blocked'; m.innerHTML = e === 'no-speech' ? 'Chưa nghe thấy gì, thử nói to hơn nhé.' : '❌ ' + (MIC_ERR[e] || 'Micro chưa dùng được.') + ` <small>(mã lỗi: ${esc(String(e))})</small>`; }
     b.disabled = false; });
@@ -3540,14 +3550,61 @@ function recordOnce(maxMs = 5000){
     }).catch(e => reject(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'));
   });
 }
+/* ===== Điện thoại: thu âm 1 lần, Mochi tự nghe lại bản thu bằng bộ nghe Whisper chạy ngay trên máy ===== */
+const ASR_MODEL = 'Xenova/whisper-tiny.en';
+let asrP = null, asrFn = null, asrFail = false, asrPct = 0, asrOnProg = null;
+const useASR = () => MOBILE && CAN_REC && !asrFail;
+function loadASR(){
+  if (asrFn) return Promise.resolve(asrFn);
+  if (window.__mockASR) return Promise.resolve(asrFn = window.__mockASR);
+  if (!asrP) { const files = {};
+    asrP = import(new URL('vendor/transformers.min.js', location.href).href).then(async T => {
+      T.env.allowLocalModels = false;
+      try { T.env.backends.onnx.wasm.wasmPaths = new URL('vendor/', location.href).href; } catch (e) {}
+      const pipe = await T.pipeline('automatic-speech-recognition', ASR_MODEL, { dtype: 'q8', device: 'wasm',
+        progress_callback: x => { if (x && x.file && x.total) { files[x.file] = [x.loaded || 0, x.total]; const v = Object.values(files); asrPct = Math.round(100 * v.reduce((a, b) => a + b[0], 0) / Math.max(1, v.reduce((a, b) => a + b[1], 0))); asrOnProg && asrOnProg(asrPct); } } });
+      asrPct = 100; asrOnProg && asrOnProg(100);
+      asrFn = async f32 => { const o = await pipe(f32); return String((o && o.text) || '').trim(); };
+      return asrFn;
+    }).catch(e => { asrP = null; asrFail = true; throw e; });
+  }
+  return asrP;
+}
+async function blobTo16k(blob){
+  const AC = window.AudioContext || window.webkitAudioContext, ac = new AC();
+  const ab = await ac.decodeAudioData(await blob.arrayBuffer()); try { ac.close(); } catch (e) {}
+  const oc = new OfflineAudioContext(1, Math.max(1, Math.ceil(ab.duration * 16000)), 16000);
+  const src = oc.createBufferSource(); src.buffer = ab; src.connect(oc.destination); src.start();
+  return (await oc.startRendering()).getChannelData(0);
+}
+/* thu 1 câu: tự dừng khi bé nói xong (im lặng ~1 giây) */
+function recordUtter(maxMs = 7000){
+  return new Promise((resolve, reject) => {
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(stream => {
+      let mr, chunks = [], ended = false, spoke = false, lastLoud = 0, base = 0, nb = 0, iv = null, ac = null;
+      const t0 = performance.now();
+      const done = () => { clearInterval(iv); try { ac && ac.close(); } catch (e) {} try { stream.getTracks().forEach(t => t.stop()); } catch (e) {} recStop = null;
+        resolve({ blob: chunks.length ? new Blob(chunks, { type: (mr && mr.mimeType) || 'audio/webm' }) : null, spoke }); };
+      const end = () => { if (ended) return; ended = true; try { mr.state !== 'inactive' ? mr.stop() : done(); } catch (e) { done(); } };
+      try { mr = new MediaRecorder(stream); } catch (e) { stream.getTracks().forEach(t => t.stop()); return reject('no-recorder'); }
+      mr.ondataavailable = e => e.data.size && chunks.push(e.data); mr.onstop = done; mr.start(100); recStop = end;
+      try { const AC = window.AudioContext || window.webkitAudioContext; ac = new AC(); const an = ac.createAnalyser(); an.fftSize = 1024; ac.createMediaStreamSource(stream).connect(an); const buf = new Float32Array(an.fftSize);
+        iv = setInterval(() => { an.getFloatTimeDomainData(buf); let r = 0; for (let i = 0; i < buf.length; i++) r += buf[i] * buf[i]; r = Math.sqrt(r / buf.length); const now = performance.now() - t0;
+          if (now < 300) { base += r; nb++; return; } const thr = Math.max(0.015, (base / Math.max(1, nb)) * 3);
+          if (r > thr) { spoke = true; lastLoud = now; }
+          if ((spoke && now - lastLoud > 1000) || now > maxMs || (!spoke && now > 5000)) end(); }, 80);
+      } catch (e) { setTimeout(end, Math.min(maxMs, 4000)); }
+    }).catch(e => reject(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'));
+  });
+}
 const MIC_ERR = { 'not-allowed': 'Micro chưa được cho phép. Bố mẹ mở Chrome: <b>⋮ → Cài đặt → Cài đặt trang web → Micrô</b>, cho phép trang này nhé.', 'service-not-allowed': 'Trình duyệt này chưa cho dùng nhận giọng nói.', 'audio-capture': 'Không tìm thấy micro trên máy.', 'network': 'Cần có mạng để Mochi chấm phát âm.' };
 function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
   if (!micOn()) return selfCheckManual(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids);
   let tries = 0, best = null, audioUrl = null, busy = false;
   $app.innerHTML = ctx.head(talkTxt) +
     `<div class="stage">${topHtml}<div id="ans" class="saidtxt"></div><div id="heard" class="heard"></div>
-     <button class="mic" data-a="mic" id="micb"><span class="mi">🎤</span><span class="ml">Bấm rồi nói</span></button>
-     <div class="row2" id="after" hidden><button class="btn sm2" style="--c:var(--sky);--d:var(--sky-d)" data-a="model">🔊 Mochi đọc</button><button class="btn sm2" style="--c:var(--coral);--d:var(--coral-d)" data-a="rec" ${MOBILE && CAN_REC ? '' : 'hidden'}>🎙️ Thu giọng con</button><button class="btn sm2" style="--c:var(--lilac);--d:var(--lilac-d)" data-a="mine" hidden>🔁 Nghe lại</button></div>
+     <button class="mic" data-a="mic" id="micb"><span class="mi">🎤</span><span class="ml">Bấm rồi nói</span></button><div class="asrst" id="asrst" hidden></div>
+     <div class="row2" id="after" hidden><button class="btn sm2" style="--c:var(--sky);--d:var(--sky-d)" data-a="model">🔊 Mochi đọc</button><button class="btn sm2" style="--c:var(--coral);--d:var(--coral-d)" data-a="rec" hidden>🎙️ Thu giọng con</button><button class="btn sm2" style="--c:var(--lilac);--d:var(--lilac-d)" data-a="mine" hidden>🔁 Nghe lại</button></div>
      <button class="btn" style="--c:var(--mint);--d:var(--mint-d)" data-a="nx" hidden>Tiếp tục ➜</button>
      <button class="linkb" data-a="manual">Không dùng micro, tự chấm</button></div>`;
   const micb = document.getElementById('micb');
@@ -3563,7 +3620,24 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
     else if (tries >= 3) { Sfx.bad(); mochi('Mình nghe Mochi đọc rồi luyện thêm lần sau nhé!', 'oops'); speak(speakTxt, { rate: .75 }); micb.hidden = true; $app.querySelector('[data-a="nx"]').hidden = false; }
     else { Sfx.boing(); mochi(`Nghe Mochi đọc rồi <b>nói lại</b> nhé! (còn ${3 - tries} lượt)`, 'oops'); speak(speakTxt, { rate: .75 }); micb.querySelector('.ml').textContent = 'Nói lại'; }
   };
-  on('mic', async () => { if (busy) return; busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
+  const asrst = document.getElementById('asrst');
+  const showLoad = pct => { if (!document.body.contains(asrst)) return; asrst.hidden = pct >= 100; asrst.innerHTML = `⏳ Mochi đang chuẩn bị đôi tai (chỉ lần đầu, cần mạng)… <b>${pct}%</b><i style="width:${pct}%"></i>`; };
+  if (useASR() && !asrFn) { asrOnProg = showLoad; showLoad(asrPct); loadASR().then(() => { asrst.hidden = true; }).catch(() => { asrst.hidden = true; const b = $app.querySelector('[data-a="rec"]'); if (b && CAN_REC) b.hidden = false; }); }
+  const asrTurn = async () => {
+    busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe… nói xong bấm dừng'; Sfx.tap();
+    let rec;
+    try { rec = await recordUtter(answer.split(' ').length > 3 ? 9000 : 6000); }
+    catch (err) { micb.classList.remove('on'); busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; micState = 'blocked'; mochi((MIC_ERR[err] || 'Máy này chưa thu âm được.') + ` <small>(mã: ${esc(String(err))})</small>`, 'oops'); later(() => selfCheckManual(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids), 1800); return; }
+    micb.classList.remove('on');
+    if (!rec.blob || !rec.spoke) { busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; mochi('Mochi chưa nghe thấy gì. Bé nói <b>to và rõ</b> hơn nhé!', 'oops'); return; }
+    if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(rec.blob); $app.querySelector('[data-a="mine"]').hidden = false;
+    micb.querySelector('.ml').textContent = 'Mochi đang nghe lại…'; micb.disabled = true;
+    try { const fn = await loadASR(); const text = await fn(await blobTo16k(rec.blob)); micb.disabled = false; busy = false;
+      if (!document.body.contains(micb)) return; showResult(scoreSay(answer, [{ t: text }])); }
+    catch (e) { micb.disabled = false; busy = false; asrFail = true; document.getElementById('after').hidden = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói';
+      mochi('Mochi chưa tải được đôi tai (cần mạng). Bé bấm 🔁 nghe lại giọng mình, rồi bấm 🎤 để Mochi chấm theo cách khác nhé!', 'oops'); }
+  };
+  on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
     try { const r = await listenOnce(answer.split(' ').length > 3 ? 8000 : 5000); micb.classList.remove('on'); busy = false;
       if (r.audio) { if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(r.audio); $app.querySelector('[data-a="mine"]').hidden = false; }
       showResult(scoreSay(answer, r.alts)); }
