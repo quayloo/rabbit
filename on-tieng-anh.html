@@ -1853,6 +1853,7 @@ function greet(){
   return (h < 11 ? 'Chào buổi sáng' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối') + (curKid().name && curKid().name !== 'Bé' ? ', <b>' + esc(curKid().name) + '</b>' : '');
 }
 function home(){
+  SESSION = null; const qm = document.getElementById('qmodal'); if (qm) qm.remove();
   Sfx.musicOn();
   const kn = totalKnown(), due = dueAll().length, total = WORDS.length + Object.keys(BYID).length - WORDS.length;
   const msg = !Object.keys(S.w).length
@@ -1982,13 +1983,14 @@ function daily(){
   if (tp && steps.length < 3) { const fresh = tp.list.filter(w => !S.w[w.id]).slice(0, 5); steps.push({ name: `🚀 Mở rộng: 5 từ ${tp.vi}`, run: next => { S.cur = tp.id; save(); go(learnNew, fresh, next); } }); }
   if (steps.length < 2) { const gz = pick(GZ.filter(g => g.id !== 'opp' || oppOpen())); steps.push({ name: `🎲 Sân chơi: ${gz.name}`, run: next => buildGame(gz).length ? playGame(gz, next) : go(gameRound, cyc(u.W, 8), 6, next, 'Trò chơi thưởng', true) }); }
   let i = 0;
-  const run = () => { if (i >= steps.length) return go(dayDone, t0); const st2 = steps[i++]; st2.run(run); };
+  const run = () => { if (SESSION !== sess) return; if (i >= steps.length) { SESSION = null; return go(dayDone, t0); } const st2 = steps[i++]; sess.i = i; st2.run(run); };
+  const sess = { i: 0, n: steps.length };
   Sfx.musicOff();
   $app.innerHTML = topBar('Hôm nay học gì?', `Đang ôn ${u.name} · ${u.sub}`) + talk(`Hôm nay mình làm <b>${steps.length} phần</b> nhé. Sẵn sàng chưa?`, 'happy') +
     `<div class="panel">${steps.map((s, k) => `<div class="setrow"><span>${['①', '②', '③', '④'][k]} ${s.name}</span></div>`).join('')}</div>
      <button class="btn" style="--c:var(--coral);--d:var(--coral-d)" data-a="go">Bắt đầu thôi! 🚀</button>`;
   sayVi(`Hôm nay mình làm ${steps.length} phần nhé. Sẵn sàng chưa?`);
-  on('go', run);
+  on('go', () => { SESSION = sess; run(); });
 }
 function pickBonus(pool, fresh){
   const out = fresh.slice();
@@ -2055,8 +2057,22 @@ function others(w, n){
   return out;
 }
 function othersIn(w, pool, n){ const out = [], keys = new Set([picKey(w)]); for (const x of shuffle(pool)) { if (out.length >= n) break; if (x === w || keys.has(picKey(x))) continue; keys.add(picKey(x)); out.push(x); } return out.length >= n ? out : out.concat(others(w, n - out.length)); }
+/* buổi "Hôm nay học gì": nút ✕ là thoát cả buổi (có hỏi lại), không phải bỏ qua sang phần sau */
+let SESSION = null;
+function askQuitSession(){
+  if (document.getElementById('qmodal')) return;
+  stopSpeak && stopSpeak(); Sfx.tap();
+  const s = SESSION, m = document.createElement('div'); m.className = 'modal'; m.id = 'qmodal';
+  m.innerHTML = `<div class="stage"><div style="font-size:3rem">🐰</div><div class="sentence" style="font-size:1.4rem">Bé muốn dừng bài hôm nay à?</div>
+    <p class="note">Bé đang học <b>phần ${s.i} / ${s.n}</b>. Phần đã làm vẫn được lưu, lần sau bấm “Hôm nay học gì?” để học tiếp nhé.</p>
+    <div class="row2"><button class="btn" style="--c:var(--mint);--d:var(--mint-d)" data-q="stay">Học tiếp</button><button class="btn" style="--c:#8b8fa8;--d:#6d7088" data-q="quit">Thoát</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('[data-q="stay"]').onclick = () => m.remove();
+  m.querySelector('[data-q="quit"]').onclick = () => { m.remove(); SESSION = null; go(home); };
+  m.onclick = e => { if (e.target === m) m.remove(); };
+}
 function playTop(i, n, quit, stars){
-  later(() => { const b = document.getElementById('quitBtn'); if (b) b.onclick = () => go(quit); }, 0);
+  later(() => { const b = document.getElementById('quitBtn'); if (b) b.onclick = () => SESSION ? askQuitSession() : go(quit); }, 0);
   return `<div class="top"><button class="ib" id="quitBtn" aria-label="Thoát">${ICON.x}</button><div class="prog"><i style="width:${i / n * 100}%"></i></div><span class="chipc">⭐ ${stars != null ? stars : S.stars}</span></div>`;
 }
 
