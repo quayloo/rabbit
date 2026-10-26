@@ -2151,7 +2151,7 @@ function daily(){
   // mở rộng: chỉ khi đã mở
   const tp = TOPICS.find(t => t.id === S.cur && topicOpen(t) && t.list.some(w => !S.w[w.id])) || TOPICS.find(t => topicOpen(t) && t.list.some(w => !S.w[w.id]));
   if (tp && steps.length < 3) { const fresh = tp.list.filter(w => !S.w[w.id]).slice(0, 5); steps.push({ name: `🚀 Mở rộng: 5 từ ${tp.vi}`, run: next => { S.cur = tp.id; save(); go(learnNew, fresh, next); } }); }
-  if (steps.length < 2) { const gz = pick(GZ.filter(g => g.id !== 'opp' || oppOpen())); steps.push({ name: `🎲 Sân chơi: ${gz.name}`, run: next => buildGame(gz).length ? playGame(gz, next) : go(gameRound, cyc(u.W, 8), 6, next, 'Trò chơi thưởng', true) }); }
+  if (steps.length < 2) { const free = GZ.filter(g => !gzLock(g)), gz = free.length ? pick(free) : GZ.find(g => g.id === 'memo'); steps.push({ name: `🎲 Sân chơi: ${gz.name}`, run: next => buildGame(gz).length ? playGame(gz, next) : go(gameRound, cyc(u.W, 8), 6, next, 'Trò chơi thưởng', true) }); }
   let i = 0;
   const run = () => { if (SESSION !== sess) return; if (i >= steps.length) { SESSION = null; return go(dayDone, t0); } const st2 = steps[i++]; sess.i = i; st2.run(run); };
   const sess = { i: 0, n: steps.length };
@@ -3366,7 +3366,7 @@ const parseSents = txt => txt.trim().split('\n').map(line => { const m = line.ma
   return { raw, pic: m[2].trim(), ans: opts[0], opts, plain: raw.replace(/\[[^\]]+\]/, opts[0]), blank: raw.replace(/\[[^\]]+\]/, '___') }; });
 SWB.forEach(b => { b.S = parseSents(b.sents); b.W = b.words.map(en => { const id = 'sw:' + en; if (BYID[id]) return BYID[id]; const w = { id, en, vi: 'sight word', pic: '', ex: '', fl: '', t: swPseudo, example: (b.S.find(s => s.plain.split(/[ ,.?!]/).includes(en)) || {}).plain || en }; BYID[id] = w; swPseudo.list.push(w); return w; }); });
 const phStars = (id, l) => ((S.ph || {})[id] || [])[l] || 0;
-const phOpen = (id, l) => { if (l > 0) return phStars(id, l - 1) >= 2; const L = PHG.some(g => g.id === id) ? PHG : SWB, gi = L.findIndex(g => g.id === id); return gi < 0 || !L[gi].ext || S.set.openAll || phDone(L[gi - 1].id); };
+const phOpen = (id, l) => { if (l > 0) return phStars(id, l - 1) >= 2; const L = PHG.some(g => g.id === id) ? PHG : SWB, gi = L.findIndex(g => g.id === id); return gi < 0 || !L[gi].ext || S.set.openAll || (phDone(L[gi - 1].id) && UNITS.every(u => unitDone(u.id))); };
 function phSet(id, l, st){ S.ph = S.ph || {}; S.ph[id] = S.ph[id] || [0, 0, 0]; if (st > S.ph[id][l]) S.ph[id][l] = st; save(); }
 const phDone = id => phStars(id, 2) >= 2;
 
@@ -3377,10 +3377,10 @@ function phonics(){
       <span class="tx"><b>${x.name}</b><small>${sub}</small><span class="lvdots dark">${st.map(s => `<i class="${s >= 2 ? 'on' : ''}"></i>`).join('')}</span></span><span class="ust">${phDone(x.id) ? '🏆' : ''}</span></button>`; };
   $app.innerHTML = topBar('Âm & Ghép vần', 'Phonics · Sight words') + talk('Học <b>âm</b> để tự đọc từ mới nhé!') +
     `<div class="h2">🔤 Âm & ghép vần (theo thứ tự cô dạy)</div><div class="ulist">${PHG.filter(g => !g.ext).map(g => card(g, 'g', `${g.letters.join(' · ')} · ${g.W.length} từ`)).join('')}</div>
-     <div class="h2">🚀 Mở rộng: âm ghép (Jolly Phonics 4–8) <small class="note">mở dần khi xong nhóm trước</small></div><div class="ulist">${PHG.filter(g => g.ext).map(g => phOpen(g.id, 0) ? card(g, 'g', `${g.letters.join(' · ')} · ${g.W.length} từ`) : card(Object.assign({}, g, { name: '🔒 ' + g.name }), 'g', `Học xong ${PHG[PHG.indexOf(g) - 1].name} để mở`)).join('')}</div>
-     <div class="h2">👀 Sight words</div><div class="ulist">${SWB.map(b => { Object.assign(b, { c: '#9b7bff', d: '#7a59e6' }); return phOpen(b.id, 0) ? card(b, 'b', b.words.join(', ')) : card(Object.assign({}, b, { name: '🔒 ' + b.name }), 'b', `Học xong ${SWB[SWB.indexOf(b) - 1].name} để mở`); }).join('')}</div>`;
-  on('g', b => { const g = PHG.find(g => g.id === b.dataset.id); if (!phOpen(g.id, 0)) { mochi(`Bé học xong <b>${PHG[PHG.indexOf(g) - 1].name}</b> rồi mở nhóm này nhé!`, 'oops'); Sfx.boing(); return; } go(phHome, g, 'g'); });
-  on('b', b => { const x = SWB.find(g => g.id === b.dataset.id); if (!phOpen(x.id, 0)) { mochi(`Bé học xong <b>${SWB[SWB.indexOf(x) - 1].name}</b> rồi mở đợt này nhé!`, 'oops'); Sfx.boing(); return; } go(phHome, x, 'b'); });
+     <div class="h2">🚀 Mở rộng: âm ghép (Jolly Phonics 4–8) <small class="note">mở dần khi xong nhóm trước</small></div><div class="ulist">${PHG.filter(g => g.ext).map(g => phOpen(g.id, 0) ? card(g, 'g', `${g.letters.join(' · ')} · ${g.W.length} từ`) : card(Object.assign({}, g, { name: '🔒 ' + g.name }), 'g', (UNITS.every(u => unitDone(u.id)) ? `Học xong ${PHG[PHG.indexOf(g) - 1].name} để mở` : 'Mở khi bé học tốt tất cả các Unit'))).join('')}</div>
+     <div class="h2">👀 Sight words</div><div class="ulist">${SWB.map(b => { Object.assign(b, { c: '#9b7bff', d: '#7a59e6' }); return phOpen(b.id, 0) ? card(b, 'b', b.words.join(', ')) : card(Object.assign({}, b, { name: '🔒 ' + b.name }), 'b', (UNITS.every(u => unitDone(u.id)) ? `Học xong ${SWB[SWB.indexOf(b) - 1].name} để mở` : 'Mở khi bé học tốt tất cả các Unit')); }).join('')}</div>`;
+  on('g', b => { const g = PHG.find(g => g.id === b.dataset.id); if (!phOpen(g.id, 0)) { mochi(UNITS.every(u => unitDone(u.id)) ? `Bé học xong <b>${PHG[PHG.indexOf(g) - 1].name}</b> rồi mở nhóm này nhé!` : 'Phần mở rộng mở khi bé <b>học tốt tất cả các Unit</b> nhé!', 'oops'); Sfx.boing(); return; } go(phHome, g, 'g'); });
+  on('b', b => { const x = SWB.find(g => g.id === b.dataset.id); if (!phOpen(x.id, 0)) { mochi(UNITS.every(u => unitDone(u.id)) ? `Bé học xong <b>${SWB[SWB.indexOf(x) - 1].name}</b> rồi mở đợt này nhé!` : 'Phần mở rộng mở khi bé <b>học tốt tất cả các Unit</b> nhé!', 'oops'); Sfx.boing(); return; } go(phHome, x, 'b'); });
 }
 function phHome(x, kind){
   Sfx.musicOn();
@@ -3495,11 +3495,17 @@ function playGroups(){
   return gs.filter(g => g.W.length >= 3);
 }
 function playPool(){
-  const seen = Object.values(BYID).filter(w => hasPic(w) && S.w[w.id] && activeWord(w));
+  const seen = Object.values(BYID).filter(w => hasPic(w) && S.w[w.id] && activeWord(w) && w.t.id !== 'phon');
   const more = playGroups().flatMap(g => g.W);
   const out = [], keys = new Set();
   [...shuffle(seen), ...shuffle(more)].forEach(w => { const k = picKey(w); if (!keys.has(k) && !keys.has('en:' + w.en)) { keys.add(k); keys.add('en:' + w.en); out.push(w); } });
   return out;
+}
+/* trò nào chưa đủ từ đã học trên lớp thì khoá, để bé chỉ gặp từ trong Unit */
+function gzLock(g){
+  if (g.id === 'opp') return oppOpen() ? '' : 'Học tốt Unit 2 để mở';
+  if (g.id === 'riddle') return (S.set.openAll || UNITS.every(u => unitDone(u.id))) && riddlePool().length >= 4 ? '' : 'Mở khi bé học tốt tất cả các Unit';
+  return buildGame(g).length ? '' : 'Học thêm vài từ để mở';
 }
 const GZ = [
   { id: 'bingo', name: 'Bingo nghe nhanh', icon: '🎯', c: '#ff7a59', d: 'Nghe Mochi gọi, chạm đủ 3 hình thẳng hàng!', n: 4 },
@@ -3515,9 +3521,9 @@ function playzone(){
   Sfx.musicOn();
   const pool = playPool(); S.gm = S.gm || {};
   $app.innerHTML = topBar('Sân chơi', `${pool.length} từ để chơi`) + talk('Chọn trò chơi nào!') +
-    `<div class="ulist">${GZ.map(g => { const lock = g.id === 'opp' && !oppOpen(), st = S.gm[g.id] || 0;
-      return `<button class="ucard ${lock ? 'locked' : ''}" style="--c:${g.c}" data-a="g" data-id="${g.id}"><span class="ti">${lock ? '🔒' : g.icon}</span><span class="tx"><b>${g.name}</b><small>${lock ? 'Học tốt Unit 2 để mở' : g.d}</small></span><span class="ust" style="color:var(--sun-d)">${st ? '★'.repeat(st) : ''}</span></button>`; }).join('')}</div>`;
-  on('g', b => { const g = GZ.find(x => x.id === b.dataset.id); if (g.id === 'opp' && !oppOpen()) { mochi('Trò này mở khi bé <b>học tốt Unit 2</b> nhé!', 'oops'); Sfx.boing(); return; } playGame(g); });
+    `<div class="ulist">${GZ.map(g => { const lock = gzLock(g), st = S.gm[g.id] || 0;
+      return `<button class="ucard ${lock ? 'locked' : ''}" style="--c:${g.c}" data-a="g" data-id="${g.id}"><span class="ti">${lock ? '🔒' : g.icon}</span><span class="tx"><b>${g.name}</b><small>${lock || g.d}</small></span><span class="ust" style="color:var(--sun-d)">${st ? '★'.repeat(st) : ''}</span></button>`; }).join('')}</div>`;
+  on('g', b => { const g = GZ.find(x => x.id === b.dataset.id); const lk = gzLock(g); if (lk) { mochi(lk + ' nhé!', 'oops'); Sfx.boing(); return; } playGame(g); });
 }
 function playGame(g, after){
   const qs = buildGame(g);
@@ -3713,7 +3719,7 @@ const RIDDLES = [
   ['clothes:gloves', ['You wear us on your hands.', 'We keep you warm.', 'What are we?']]
 ];
 function riddlePool(){ const all = RIDDLES.map(([id, c]) => ({ w: BYID[id], c })).filter(r => r.w && hasPic(r.w));
-  const act = all.filter(r => activeWord(r.w)); return act.length >= 6 ? act : all; }
+  return all.filter(r => activeWord(r.w)); }
 UENG.riddle = (q, cb, ctx) => {
   const w = q.r.w, lines = q.r.c, others = [], keys = new Set([picKey(w)]);
   for (const x of shuffle(q.pool)) { if (others.length >= 2) break; if (keys.has(picKey(x)) || x.en === w.en) continue; keys.add(picKey(x)); others.push(x); }
