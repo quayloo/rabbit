@@ -1829,7 +1829,7 @@ function load(){
   KEY = kidKey(KIDS.cur);
   try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { S = null; }
   S = Object.assign({ w: {}, stars: 0, streak: { last: 0, n: 0 }, stk: {}, cur: null, set: { accent: 'gb', rate: 0.85, sfx: true, music: true, vi: true }, log: {}, u: {}, ut: {}, ph: {} }, S || {});
-  S.set = Object.assign({ accent: 'gb', rate: 0.85, sfx: true, music: true, vi: true, openAll: false, mic: true }, S.set);
+  S.set = Object.assign({ accent: 'gb', rate: 0.85, sfx: true, music: true, vi: true, openAll: false, mic: true, dailyPh: true }, S.set);
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 load();
@@ -2147,7 +2147,7 @@ function daily(){
   if (!cand.length && testOpen(u.id) && !unitDone(u.id)) steps.push({ name: `🏆 Kiểm tra ${u.name}`, run: next => { const qs = buildTest(u); go(gameRound, null, 0, next, `Kiểm tra ${u.name}`, false, null, { qs, track: u.id + ':test', onScore: pct => { const st2 = pct >= .95 ? 3 : pct >= .8 ? 2 : pct >= .5 ? 1 : 0; if (st2 > (S.ut[u.id] || 0)) { S.ut[u.id] = st2; save(); } return st2 >= 2 ? `🏆 Bé đã học tốt <b>${u.name}</b>! Từ vựng mở rộng đã mở 🔓` : ''; } }); } });
   // âm & ghép vần: mỗi ngày một chút
   const phx = PHG.find(g => !g.ext && !phDone(g.id)) || SWB.find(b => !phDone(b.id)) || PHG.find(g => g.ext && phOpen(g.id, 0) && !phDone(g.id));
-  if (phx && steps.length < 4) { const kind = PHG.includes(phx) ? 'g' : 'b', l = [0, 1, 2].find(l => phStars(phx.id, l) < 2); steps.push({ name: `🔤 ${phx.name} · cấp ${l + 1}`, run: next => phStart(phx, kind, l, next) }); }
+  if (phx && S.set.dailyPh !== false && steps.length < 4) { const kind = PHG.includes(phx) ? 'g' : 'b', l = [0, 1, 2].find(l => phStars(phx.id, l) < 2); steps.push({ name: `🔤 ${phx.name} · cấp ${l + 1}`, run: next => phStart(phx, kind, l, next) }); }
   // mở rộng: chỉ khi đã mở
   const tp = TOPICS.find(t => t.id === S.cur && topicOpen(t) && t.list.some(w => !S.w[w.id])) || TOPICS.find(t => topicOpen(t) && t.list.some(w => !S.w[w.id]));
   if (tp && steps.length < 3) { const fresh = tp.list.filter(w => !S.w[w.id]).slice(0, 5); steps.push({ name: `🚀 Mở rộng: 5 từ ${tp.vi}`, run: next => { S.cur = tp.id; save(); go(learnNew, fresh, next); } }); }
@@ -2213,20 +2213,27 @@ function placement(t){
   }
   show();
 }
-function similar(w, n){
+/* từ dùng làm phương án nhiễu: ưu tiên trong nhóm từ của bài (pool), không lấy từ lạ ngoài bài */
+const classWords = () => UNITS.flatMap(u => u.W);
+function similar(w, n, scope){
+  if (scope && scope.length) { const r = similarFrom(w, n, scope); if (r.length >= n) return r; const r2 = similarFrom(w, n, classWords().filter(x => !r.includes(x))); return r.concat(r2).slice(0, n); }
+  return similarFrom(w, n, WORDS);
+}
+function similarFrom(w, n, base){
   // từ dễ nhầm: cùng chữ đầu hoặc độ dài gần nhau, khác hình
-  const pool = WORDS.filter(x => x.id !== w.id && x.en.toLowerCase() !== w.en.toLowerCase() && picKey(x) !== picKey(w));
+  const pool = base.filter(x => x.id !== w.id && x.en.toLowerCase() !== w.en.toLowerCase() && picKey(x) !== picKey(w));
   const sc = x => (x.en[0].toLowerCase() === w.en[0].toLowerCase() ? 3 : 0) + (x.t === w.t ? 2 : 0) - Math.abs(x.en.length - w.en.length) * .5 + Math.random() * 2;
   return pool.sort((a, b) => sc(b) - sc(a)).slice(0, n);
 }
-function others(w, n){
+function others(w, n, scope){
+  if (scope && scope.length) return othersIn(w, scope, n);
   const same = shuffle(w.t.list.filter(x => x.id !== w.id && picKey(x) !== picKey(w)));
   const rest = shuffle(WORDS.filter(x => x.t !== w.t && picKey(x) !== picKey(w)));
   const out = [], keys = new Set([picKey(w)]);
   for (const x of [...same, ...rest]) { if (out.length >= n) break; if (keys.has(picKey(x))) continue; keys.add(picKey(x)); out.push(x); }
   return out;
 }
-function othersIn(w, pool, n){ const out = [], keys = new Set([picKey(w)]); for (const x of shuffle(pool)) { if (out.length >= n) break; if (x === w || keys.has(picKey(x))) continue; keys.add(picKey(x)); out.push(x); } return out.length >= n ? out : out.concat(others(w, n - out.length)); }
+function othersIn(w, pool, n){ const out = [], keys = new Set([picKey(w)]); for (const x of shuffle(pool)) { if (out.length >= n) break; if (x === w || keys.has(picKey(x))) continue; keys.add(picKey(x)); out.push(x); } return out.length >= n ? out : out.concat(othersIn(w, classWords().filter(x => !out.includes(x) && x !== w && !pool.includes(x)), n - out.length).slice(0, n - out.length)); }
 /* buổi "Hôm nay học gì": nút ✕ là thoát cả buổi (có hỏi lại), không phải bỏ qua sang phần sau */
 let SESSION = null;
 function askQuitSession(){
@@ -2324,7 +2331,7 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     let g = GAMES[gi++ % GAMES.length];
     const w = focusSet[k % focusSet.length];
     if (g === 'spell' && (w.en.length > 11 || /[^a-z ]/i.test(w.en))) g = 'balloon';
-    qs.push({ g, w });
+    qs.push({ g, w, pool: words.length >= 4 ? words : null });
   }
   let i = 0, okN = 0, got = 0;
   let busy = false;
@@ -2358,7 +2365,7 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     },
     /* 🔨 Đọc – đập chuột chữ */
     mole(q, cb){
-      const w = q.w, opts = shuffle([w, ...similar(w, 3)]);
+      const w = q.w, opts = shuffle([w, ...similar(w, 3, q.pool)]);
       $app.innerHTML = head('📖 Nhìn hình, <b>đập chú chuột</b> giơ đúng từ tiếng Anh!') +
         `<div class="stage"><div class="bigpic" style="min-height:90px">${pic(w)}</div>
          <div class="field">${opts.map(o => `<button class="hole" data-id="${esc(o.id)}"><span class="mole"><span class="face"></span><span class="sign">${esc(o.en)}</span></span></button>`).join('')}</div></div>`;
@@ -2416,7 +2423,7 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     },
     /* ✅ Nghe – đúng hay sai */
     tf(q, cb){
-      const w = q.w, truth = Math.random() < .5, alt = truth ? w : others(w, 1)[0];
+      const w = q.w, truth = Math.random() < .5, alt = truth ? w : others(w, 1, q.pool)[0];
       $app.innerHTML = head('🎧 Nghe Mochi đọc. <b>Đúng</b> với hình không?') +
         `<div class="stage"><div class="bigpic">${pic(w)}</div><button class="say hero" data-a="re">🔊</button>
          <div class="row2"><button class="btn" style="--c:var(--mint);--d:var(--mint-d);font-size:2rem" data-a="t">✓</button><button class="btn" style="--c:var(--red);--d:#d63a50;font-size:2rem" data-a="f">✗</button></div></div>`;
@@ -2494,6 +2501,7 @@ function parents(){
       <div class="setrow"><span>Unit bé đang học<small>"Hôm nay học gì" sẽ ưu tiên Unit này</small></span></div>
       <div class="seg" style="flex-wrap:wrap">${UNITS.map(u => `<button aria-pressed="${curUnit().id === u.id}" data-a="unit" data-id="${u.id}">${u.name}</button>`).join('')}</div>
       <div class="kpi">${UNITS.map(u => `<div><b>${unitDone(u.id) ? '🏆' : Math.round(unitPct(u.id) * 100) + '%'}</b>${u.name}</div>`).join('')}</div>
+      <div class="setrow"><span>"Hôm nay học gì" có phần Âm & vần<small>Âm theo thứ tự cô dạy (s a t i p n…), dùng từ ghép âm ngoài Unit</small></span>${seg('dailyPh', [[true, 'Có'], [false, 'Không']])}</div>
       <div class="setrow"><span>Mở ngay phần mở rộng<small>Bỏ qua điều kiện học tốt Unit trước</small></span>${seg('openAll', [[false, 'Không'], [true, 'Mở']])}</div></div>
     <div class="panel"><h3>⚙️ Cài đặt</h3>
       <div class="setrow"><span>Giọng đọc<small>Giáo trình của lớp theo giọng Anh</small></span>${seg('accent', [['gb', '🇬🇧 Anh'], ['us', '🇺🇸 Mỹ']])}</div>
@@ -2817,7 +2825,7 @@ function buildLevel(u, k, l){
   if (k === 'noi' && l === 0) words(8).forEach((w, i) => out.push({ g: i % 2 ? 'spin' : 'say', w, pool: W }));
   if (k === 'noi' && l === 1) cyc(Sx, 8).forEach(s => out.push({ g: 'saysent', s, u }));
   if (k === 'noi' && l === 2) cyc(Q, 8).forEach(q => out.push({ g: 'answer', q, u }));
-  if (k === 'doc' && l === 0) words(7).forEach((w, i) => out.push({ g: i % 2 ? 'pickword' : 'mole', w })), out.splice(4, 0, { g: 'memory', ws: cyc(W, 4) });
+  if (k === 'doc' && l === 0) words(7).forEach((w, i) => out.push({ g: i % 2 ? 'pickword' : 'mole', w, pool: W })), out.splice(4, 0, { g: 'memory', ws: cyc(W, 4) });
   if (k === 'doc' && l === 1) { cyc(Sx, 6).forEach((s, i) => out.push({ g: i % 2 ? 'readtf' : 'readpic', s, u })); out.splice(3, 0, { g: 'halves', ss: pickDistinct(Sx, 3), u }); out.push({ g: 'halves', ss: pickDistinct(Sx, 3), u }); }
   if (k === 'doc' && l === 2) { u.stories.forEach(st => st.q.forEach((qq, qi) => out.push({ g: 'story', st, qi, u })));
     const extra = 8 - out.length; (u.instr || UNITS.indexOf(u) > 1 ? cyc(INSTRW, extra).map(w => ({ g: 'instr', w })) : cyc(Sx, extra).map(s => ({ g: 'readpic', s, u }))).forEach(x => out.push(x)); }
@@ -2903,7 +2911,7 @@ function selfCheckManual(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
   on('n', () => { speak(speakTxt, { rate: .75 }); cb(false, ids); });
 }
 UENG.spin = (q, cb, ctx) => {
-  const w = q.w, ring = shuffle([w, ...others(w, 5)]);
+  const w = q.w, ring = shuffle([w, ...others(w, 5, q.pool)]);
   $app.innerHTML = ctx.head('🎡 Vòng quay may mắn! Quay xong, bé <b>nói to</b> tên hình nhé!') +
     `<div class="stage"><div class="pointer">▼</div><div class="wheel" id="wh">${ring.map((x, k) => { const a = k * Math.PI / 3; return `<span style="left:${(110 + 68 * Math.sin(a) - 28).toFixed(1)}px;top:${(110 - 68 * Math.cos(a) - 28).toFixed(1)}px">${picCode(x.pic, x.vi)}</span>`; }).join('')}</div>
      <button class="btn" style="--c:var(--coral);--d:var(--coral-d)" data-a="sp">🎡 Quay!</button></div>`;
@@ -2918,7 +2926,7 @@ UENG.answer = (q, cb, ctx) => {
 };
 /* 📖 Đọc */
 UENG.pickword = (q, cb, ctx) => {
-  const w = q.w, opts = shuffle([w, ...similar(w, 2)]);
+  const w = q.w, opts = shuffle([w, ...similar(w, 2, q.pool)]);
   $app.innerHTML = ctx.head('📖 Nhìn hình, <b>chọn từ đúng</b>!') + `<div class="stage"><div class="bigpic">${pic(w)}</div><div class="opts one">${opts.map(o => `<button class="opt" data-id="${esc(o.id)}">${esc(o.en)}</button>`).join('')}</div></div>`;
   let tries = 0;
   $app.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (b.dataset.id === w.id) { b.classList.add('ok'); Sfx.good(); speak(w.en); cb(tries === 0, [w.id]); } else { tries++; b.classList.add('bad', 'shake'); Sfx.boing(); } });
@@ -3421,7 +3429,7 @@ UENG.initial = (q, cb, ctx) => {
 };
 UENG.findpic = (q, cb, ctx) => {
   const w = q.w, first = toksOf(w.en)[0];
-  const others2 = shuffle(q.grp.W.concat(PHG.flatMap(g => g.W)).filter(x => toksOf(x.en)[0] !== first && x.pic !== w.pic && !(/^[ck]/.test(first) && /^[ck]/.test(x.en))));
+  const others2 = shuffle(q.grp.W.concat(PHG.slice(0, PHG.indexOf(q.grp) + 1).flatMap(g => g.W)).filter(x => toksOf(x.en)[0] !== first && x.pic !== w.pic && !(/^[ck]/.test(first) && /^[ck]/.test(x.en))));
   const uniq = []; others2.forEach(x => { if (uniq.length < 2 && !uniq.some(y => y.pic === x.pic)) uniq.push(x); });
   const opts = shuffle([w, ...uniq]);
   $app.innerHTML = ctx.head(`🔍 Hình nào bắt đầu bằng âm <b>${first}</b>?`) + `<div class="stage"><div class="bigletter">${first}</div>
@@ -3431,7 +3439,7 @@ UENG.findpic = (q, cb, ctx) => {
 };
 UENG.blend = (q, cb, ctx) => {
   const w = q.w, t = toksOf(w.en);
-  const pool = PHG.flatMap(g => g.W).filter(x => x.pic !== w.pic && x.en !== w.en);
+  const pool = PHG.slice(0, PHG.indexOf(q.grp) + 1).flatMap(g => g.W).filter(x => x.pic !== w.pic && x.en !== w.en);
   const sc = x => (x.en.length === w.en.length ? 2 : 0) + [...x.en].filter((c, k) => w.en[k] === c).length + Math.random();
   const opts = shuffle([w, ...pool.sort((a, b) => sc(b) - sc(a)).filter((x, k, arr) => arr.findIndex(y => y.pic === x.pic) === k).slice(0, 2)]);
   $app.innerHTML = ctx.head('🧩 Bé <b>đọc từng âm rồi ghép lại</b>, chọn hình đúng!') + `<div class="stage"><div class="blendw">${t.map((c, k) => `<span style="animation-delay:${k * .5}s">${c}</span>`).join('')}</div>
