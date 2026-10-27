@@ -2516,7 +2516,8 @@ function parents(){
       <textarea id="bkt" class="bk" rows="3" placeholder="Dán mã sao lưu vào đây…" spellcheck="false"></textarea>
       <div class="seg"><button data-a="rs">📥 Khôi phục từ mã</button></div><p class="note" id="bkm" style="text-align:left"></p></div>
     <div class="panel"><h3>🗑️ Làm lại từ đầu</h3><p class="note">Xoá toàn bộ tiến độ trên máy này: từ đã thuộc, sao, huy hiệu.</p><button class="danger" data-a="reset">Xoá tiến độ</button></div>
-    <p class="note">Tiến độ đang lưu trên máy này. Dùng "Sao lưu tiến độ" để chuyển sang máy khác.</p>`;
+    <p class="note">Tiến độ đang lưu trên máy này. Dùng "Sao lưu tiến độ" để chuyển sang máy khác.</p>
+    <p class="note" style="font-size:.72rem">Nguồn hình: biểu tượng ARASAAC của Sergio Palao (Chính quyền Aragón, Tây Ban Nha), giấy phép CC BY-NC-SA – arasaac.org. Một số hình ghép hoặc vẽ thêm từ ARASAAC.</p>`;
   const bkt = document.getElementById('bkt'), bkm = document.getElementById('bkm');
   on('bk', () => { bkt.value = backupCode(); bkt.select(); $app.querySelector('[data-a="cp"]').hidden = false; bkm.textContent = '✅ Đã tạo mã (' + bkt.value.length + ' ký tự). Bấm Sao chép rồi dán vào nơi an toàn.'; });
   on('cp', () => { bkt.select(); let ok = false; try { if (navigator.clipboard) { navigator.clipboard.writeText(bkt.value).then(() => bkm.textContent = '📋 Đã sao chép!', () => {}); ok = true; } } catch (e) {} try { ok = document.execCommand('copy') || ok; } catch (e) {} bkm.textContent = ok ? '📋 Đã sao chép!' : 'Hãy nhấn giữ vào ô để chọn và sao chép.'; });
@@ -2693,6 +2694,7 @@ function picCode(code, vi){
   if (p.startsWith('body:')) return bodySvg(p.slice(5));
   if (p.startsWith('prep:')) return prepSvg(p.slice(5));
   if (p.startsWith('obj:')) return objSvg(p.slice(4));
+  if (p.startsWith('w:')) return `<svg class="wimg" viewBox="0 0 100 100" role="img" aria-label="${esc(vi || '')}"><image href="img/w/${p.slice(2)}.webp" width="100" height="100"/></svg>`;
   if (p.startsWith('d:')) return drawSvg(p.slice(2));
   if (p.startsWith('p:')) return personSvg(p.slice(2));
   if (p.startsWith('fig:')) return `<span class="figw">${fig(p.slice(4))}</span>`;
@@ -3750,6 +3752,10 @@ UENG.missing = (q, cb, ctx) => {
       else { tries++; b.classList.add('bad', 'shake'); Sfx.boing(); } });
   }, q.ms);
 };
+
+/* Hình đã được bố duyệt (đợt 1: các Unit) — ghi đè pic theo id */
+const PICFIX = {"feelings:happy": "w:happy", "feelings:sad": "w:sad", "feelings:angry": "w:angry", "feelings:hungry": "w:hungry", "feelings:thirsty": "w:thirsty", "feelings:tired": "w:tired", "feelings:scared": "w:scared", "weather:sunny": "w:sunny", "weather:rainy": "w:rainy", "weather:cloudy": "w:cloudy", "weather:windy": "w:windy", "weather:stormy": "w:stormy", "u:stand up": "w:stand-up", "u:sit down": "w:sit-down", "u:open your book": "w:open-your-book", "u:raise your hand": "w:raise-your-hand", "u:be quiet": "w:be-quiet", "school:window": "w:window", "school:door": "w:door", "school:chair": "w:chair", "u:desk": "w:desk", "school:bin": "w:bin", "school:poster": "w:poster", "u:board": "w:board", "school:bag": "w:bag", "school:book": "w:book", "u:cupboard": "w:cupboard", "school:ruler": "w:ruler", "u:rubber": "w:rubber", "u:pencil sharpener": "w:pencil-sharpener", "u:pencil case": "w:pencil-case", "school:pen": "w:pen", "school:pencil": "w:pencil", "family:mum": "w:mum", "family:dad": "w:dad", "family:grandpa": "w:grandpa", "family:grandma": "w:grandma", "family:sister": "w:sister", "family:brother": "w:brother", "family:twin": "w:twin", "family:uncle": "w:uncle", "u:auntie": "w:auntie", "family:cousin": "w:cousin", "family:father": "w:father", "family:mother": "w:mother", "family:parents": "w:parents", "family:baby": "w:baby", "family:family": "w:family", "opposites:old": "w:old", "opposites:young": "w:young", "opposites:tall": "w:tall", "opposites:short": "w:short", "u:pretty": "w:pretty", "u:handsome": "w:handsome", "wild:lion": "w:lion", "pets:duck": "w:duck", "wild:deer": "w:deer", "toys:doll": "w:doll", "toys:skipping rope": "w:skipping-rope", "toys:ball": "w:ball", "toys:robot": "w:robot", "toys:boat": "w:boat", "toys:scooter": "w:scooter", "toys:kite": "w:kite", "toys:yoyo": "w:yoyo", "toys:teddy": "w:teddy", "u:play football": "w:play-football", "u:play tennis": "w:play-tennis", "actions:run": "w:run", "u:ride a bike": "w:ride-a-bike", "u:hop": "w:hop", "i:look": "w:look", "i:trace": "w:trace", "i:write": "w:write", "i:read": "w:read", "i:match": "w:match", "i:circle": "w:circle", "i:listen": "w:listen", "i:colour": "w:colour", "i:number": "w:number", "ph:pen": "w:pen", "ph:dad": "w:dad", "ph:sad": "w:sad", "ph:duck": "w:duck", "ph:bag": "w:bag", "ph:book": "w:book", "school:rubber": "w:rubber", "school:pencil case": "w:pencil-case", "school:desk": "w:desk", "school:board": "w:board", "school:cupboard": "w:cupboard", "actions:read": "w:read", "actions:write": "w:write", "actions:listen": "w:listen", "actions:look": "w:look"};
+Object.keys(PICFIX).forEach(id => { if (BYID[id]) BYID[id].pic = PICFIX[id]; });
 
 /* ================= 🎤 Micro: thu âm và chấm phát âm ================= */
 const SRC = window.SpeechRecognition || window.webkitSpeechRecognition || null;
