@@ -157,7 +157,28 @@ button:focus-visible { outline: 3px solid var(--lilac); outline-offset: 2px; }
 .wc .pic svg { width: 46px; height: 46px; }
 .wc span { font-family: var(--display); font-weight: 800; font-size: .95rem; line-height: 1.1; text-align: center; overflow-wrap: anywhere; }
 .wc .dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
-.dot.s1 { background: var(--sun); } .dot.s2 { background: var(--sky); } .dot.s3 { background: var(--mint); } .dot.sx { background: var(--red); }
+.dot.s1 { background: var(--sun); } .dot.s2 { background: var(--sky); } .dot.s3 { background: var(--mint); } .dot.sx { background: var(--red); } .dot.sh { background: #f2994a; }
+.hintpen { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 99; font-family: var(--display); font-weight: 800; font-size: 2rem; color: #e0475a; background: #fff; border-radius: 999px; padding: 6px 18px; box-shadow: 0 10px 24px rgba(91,75,196,.2); animation: hp 1.3s ease forwards; pointer-events: none; }
+@keyframes hp { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.8); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1.05); } 100% { opacity: 0; transform: translate(-50%, -40px); } }
+.chipc.lose { animation: shake .4s; color: #e0475a; }
+.bingo.n4 { grid-template-columns: repeat(4, 1fr); gap: 6px; } .bingo.n4 .bc svg, .bingo.n4 .bc .figw { width: 48px; height: 48px; }
+.baskets.n3 { grid-template-columns: repeat(3, 1fr); } .baskets.n3 .basket b { font-size: .85rem; }
+.newtag { font-style: normal; font-size: .7rem; background: var(--coral); color: #fff; border-radius: 999px; padding: 1px 7px; vertical-align: 2px; }
+.glv { display: flex; flex-direction: column; align-items: center; font-weight: 800; font-size: .8rem; color: var(--soft); white-space: nowrap; } .glv i { font-style: normal; color: var(--sun-d); letter-spacing: 1px; }
+.ucard .ti.lvn { font-family: var(--display); font-weight: 800; color: #fff; font-size: 1.8rem; }
+.fallzone { position: relative; width: 100%; height: min(52vh, 380px); border-radius: 22px; background: linear-gradient(#e9f4ff, #f7fbff); overflow: hidden; }
+.fallzone .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; background: #9bd18b; }
+.fall { position: absolute; top: -90px; width: 76px; height: 76px; border: 0; border-radius: 20px; background: #fff; box-shadow: 0 8px 18px rgba(91,75,196,.16); display: grid; place-items: center; padding: 4px; animation: fall linear forwards; }
+.fall svg, .fall .figw { width: 64px; height: 64px; } .fall .emo { font-size: 2.6rem; }
+.fall.ok { box-shadow: 0 0 0 4px var(--mint), 0 8px 18px rgba(0,0,0,.12); } .fall.gone { opacity: 0; transition: opacity .3s; pointer-events: none; } .fall.caught { transform: scale(1.15); }
+@keyframes fall { from { top: -90px; } to { top: calc(100% - 92px); } }
+.balloons { display: flex; gap: 4px; justify-content: center; font-size: 2rem; min-height: 2.6rem; } .balloons i { font-style: normal; transition: transform .3s, opacity .3s; } .balloons i.pop { transform: scale(1.6); opacity: 0; }
+.hslots { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; } .hsl { width: 34px; height: 44px; border-bottom: 4px solid var(--lilac); font-family: var(--display); font-weight: 800; font-size: 1.8rem; display: grid; place-items: center; color: var(--ink); } .hsl.on { color: var(--mint-d); }
+.keys { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; } .key { width: 44px; height: 48px; border: 0; border-radius: 14px; background: #fff; box-shadow: 0 6px 14px rgba(91,75,196,.12); font-family: var(--display); font-weight: 800; font-size: 1.5rem; color: var(--ink); }
+.key.ok { background: var(--mint); color: #fff; } .key.bad { background: #ffd6dc; color: #c43950; } .key:disabled { opacity: .85; }
+.ordline { display: flex; gap: 10px; justify-content: center; } .ordline span { width: 36px; height: 36px; border-radius: 50%; background: var(--line); display: grid; place-items: center; font-weight: 800; color: var(--soft); transition: transform .2s; } .ordline span.now { background: var(--lilac); color: #fff; transform: scale(1.2); }
+.popt[data-n] { position: relative; } .popt[data-n]::after { content: attr(data-n); position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; background: var(--mint); color: #fff; font-weight: 800; display: grid; place-items: center; }
+.hintsum { font-weight: 700; color: #b8611a; background: #fff1e0; border-radius: 14px; padding: 8px 12px; font-size: .9rem; text-align: center; }
 .h2 { font-family: var(--display); font-weight: 800; font-size: 1.1rem; margin: 4px 0 -4px; color: var(--soft); }
 
 /* pictures */
@@ -1841,6 +1862,7 @@ const known = id => (S.w[id] && S.w[id].b >= 3);
 function record(id, ok, opts = {}){
   const t = today();
   const s = S.w[id] || (S.w[id] = { b: 0, d: t, c: 0, x: 0 });
+  if (opts.hint) { s.h = (s.h || 0) + 1; if (ok) { s.b = Math.min(1, s.b); s.d = t + 1; S.log[t] = (S.log[t] || 0) + 1; S.acc = S.acc || {}; const a = S.acc[t] || (S.acc[t] = [0, 0]); a[1]++; save(); return; } }
   if (opts.place) { s.b = ok ? 3 : 0; }
   else if (ok) s.b = Math.min(6, s.b + 1);
   else s.b = Math.max(0, s.b >= 3 ? 1 : 0);
@@ -1877,8 +1899,17 @@ function loadVoices(){
 if (TTS) { loadVoices(); try { TTS.addEventListener('voiceschanged', loadVoices); } catch (e) {} }
 /* lời Mochi đọc trong câu hỏi hiện tại → hiện lại khi bé chọn sai (transcript) */
 let QLOG = null, QWORD = null, QSHOW = null;
+/* Gợi ý: mỗi lần bấm trừ 1 sao, câu đó không tính điểm, từ bị đánh dấu "chưa chắc" để ôn lại */
+let HINT = { n: 0, round: 0 };
+function useHint(){
+  HINT.n++; HINT.round++;
+  if (S.stars > 0) S.stars--; save();
+  const ch = $app.querySelector('.top .chipc'); if (ch) { ch.textContent = '⭐ ' + S.stars; ch.classList.remove('lose'); void ch.offsetWidth; ch.classList.add('lose'); }
+  const f = document.createElement('div'); f.className = 'hintpen'; f.textContent = '−1 ⭐'; document.body.appendChild(f); setTimeout(() => f.remove(), 1300);
+  if (HINT.n === 1) mochi('Dùng gợi ý thì <b>bị trừ 1 ⭐</b> và câu này không được tính điểm. Mochi sẽ cho bé ôn lại từ này nhé!', 'oops');
+}
 /* chỉ các bài NGHE mới hiện transcript */
-const LISTEN_G = new Set(['balloon', 'tf', 'hearpic', 'heartf', 'number', 'qapic', 'initial', 'vowel', 'dict', 'sight4', 'bingo', 'riddle']);
+const LISTEN_G = new Set(['balloon', 'tf', 'hearpic', 'heartf', 'number', 'qapic', 'initial', 'vowel', 'dict', 'sight4', 'bingo', 'riddle', 'catch', 'order']);
 const freezeT = () => { if (QLOG && !QSHOW) QSHOW = QLOG.slice(); };
 function logSaid(t){ if (!QLOG) return; t = String(t).trim(); if (t && !QLOG.includes(t)) { QLOG.push(t); if (QLOG.length > 6) QLOG.shift(); } }
 function showTranscript(){
@@ -2080,7 +2111,7 @@ function topics(){
     }).join('')}</div>`).join('');
   on('t', b => { const t = TOPICS.find(t => t.id === b.dataset.id); if (!topicOpen(t)) { mochi(`Chủ đề này mở khi bé <b>học tốt ${lockedBy(t)}</b> (đạt bài Kiểm tra Unit) nhé!`, 'oops'); Sfx.boing(); window.scrollTo(0, 0); return; } go(topic, t); });
 }
-function stateCls(w){ const s = S.w[w.id]; if (!s) return ''; if (s.x > s.c && s.b < 3) return 'sx'; return s.b >= 3 ? 's3' : s.b >= 1 ? 's2' : 's1'; }
+function stateCls(w){ const s = S.w[w.id]; if (!s) return ''; if (s.x > s.c && s.b < 3) return 'sx'; if (s.h && s.b < 3) return 'sh'; return s.b >= 3 ? 's3' : s.b >= 1 ? 's2' : 's1'; }
 function topic(t){
   Sfx.musicOn();
   if (!topicOpen(t)) { go(topics); return; }
@@ -2333,15 +2364,17 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     if (g === 'spell' && (w.en.length > 11 || /[^a-z ]/i.test(w.en))) g = 'balloon';
     qs.push({ g, w, pool: words.length >= 4 ? words : null });
   }
-  let i = 0, okN = 0, got = 0;
+  let i = 0, okN = 0, got = 0, hintQ = 0;
   let busy = false;
-  function next(){ busy = false; QSHOW = null; QLOG = i < qs.length && LISTEN_G.has(qs[i].g) ? [] : null; QWORD = i < qs.length ? (qs[i].w || null) : null; if (i >= qs.length) { if (opt.track) trackRes(opt.track, okN, qs.length); const extra = opt.onScore ? opt.onScore(okN / qs.length) : ''; return go(roundEnd, okN, qs.length, title || 'Xong rồi!', done, extra); } const q = qs[i];
+  function next(){ busy = false; HINT.n = 0; QSHOW = null; QLOG = i < qs.length && LISTEN_G.has(qs[i].g) ? [] : null; QWORD = i < qs.length ? (qs[i].w || null) : null; if (i >= qs.length) { if (opt.track) trackRes(opt.track, okN, qs.length); const extra = opt.onScore ? opt.onScore(okN / qs.length) : ''; return go(roundEnd, okN, qs.length, title || 'Xong rồi!', done, extra, hintQ); } const q = qs[i];
     if (ENG[q.g]) ENG[q.g](q, res); else UENG[q.g](q, res, { head, done: res }); }
   function res(ok, ids){
     if (busy || !qs[i]) return; busy = true; const hadT = !!$app.querySelector('.tscript'); if (!ok && !hadT) { freezeT(); showTranscript(); } const showT = !ok && !!$app.querySelector('.tscript'); QLOG = null;
     $app.querySelectorAll('.stage button, .bank button').forEach(x => { if (!x.classList.contains('say')) x.disabled = true; });
-    (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok));
-    if (ok) { okN++; got++; S.stars++; save(); mochi(pick(PRAISE_VI), 'happy'); later(() => speak(pick(PRAISE_EN), { queue: true }), 300); }
+    const hinted = HINT.n > 0; if (hinted) { (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok, { hint: true })); ok = false; hintQ++; }
+    else (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok));
+    if (hinted) { mochi(pick(['Lần sau bé thử tự làm trước nhé!', 'Từ này bé chưa chắc, mình sẽ ôn lại nha!', 'Gần đúng rồi! Lần sau thử không cần gợi ý nhé!']), 'oops'); }
+    else if (ok) { okN++; got++; S.stars++; save(); mochi(pick(PRAISE_VI), 'happy'); later(() => speak(pick(PRAISE_EN), { queue: true }), 300); }
     else mochi(pick(OOPS_VI), 'oops');
     i++; later(next, ok ? 1100 : showT ? 3200 : 1700);
   }
@@ -2389,7 +2422,7 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
       $app.innerHTML = head('✍️ Nghe và <b>xếp chữ cái</b> thành từ đúng nhé!') +
         `<div class="stage"><div class="bigpic" style="min-height:90px">${pic(w)}</div><button class="say sm" data-a="re">🔊 Nghe</button>
          <div class="slots" id="slots" style="--L:${Math.max(...words.map(x => x.length))}"></div></div>
-         <div class="bank" id="bank"></div><div class="tools"><button class="tool" data-a="undo">⌫ Xoá</button><button class="tool" data-a="hint">💡 Gợi ý</button></div>`;
+         <div class="bank" id="bank"></div><div class="tools"><button class="tool" data-a="undo">⌫ Xoá</button><button class="tool" data-a="hint">💡 Gợi ý (−1 ⭐)</button></div>`;
       const slotsEl = document.getElementById('slots'), bankEl = document.getElementById('bank');
       const used = () => new Set(fill.filter(x => x != null && x >= 0));
       const first = () => fill.findIndex(x => x === null);
@@ -2412,7 +2445,7 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
       bankEl.onclick = e => { const b = e.target.closest('.tl'); if (!b || fin) return; const k = first(); if (k < 0) return; fill[k] = +b.dataset.j; Sfx.tap(); draw(); if (first() < 0) check(); };
       slotsEl.onclick = e => { const b = e.target.closest('.slot'); if (!b || fin) return; const k = +b.dataset.k; if (okS[k] || fill[k] === null) return; fill[k] = null; draw(); };
       on('undo', () => { if (fin) return; for (let k = fill.length - 1; k >= 0; k--) if (fill[k] != null && fill[k] >= 0 && !okS[k]) { fill[k] = null; break; } draw(); });
-      on('hint', () => { if (fin) return; const k = tgt.findIndex((c, kk) => !given[kk] && !okS[kk]); if (k < 0) return; fill[k] = null; const u = used(); let j = bank.findIndex((b, jj) => b === tgt[k] && !u.has(jj)); if (j < 0) { const kk = fill.findIndex((f, m) => m !== k && !okS[m] && f != null && f >= 0 && bank[f] === tgt[k]); j = fill[kk]; fill[kk] = null; } fill[k] = j; okS[k] = true; tries = Math.max(tries, 1); Sfx.tap(); draw(); if (first() < 0) check(); });
+      on('hint', () => { if (fin) return; const k = tgt.findIndex((c, kk) => !given[kk] && !okS[kk]); if (k < 0) return; useHint(); fill[k] = null; const u = used(); let j = bank.findIndex((b, jj) => b === tgt[k] && !u.has(jj)); if (j < 0) { const kk = fill.findIndex((f, m) => m !== k && !okS[m] && f != null && f >= 0 && bank[f] === tgt[k]); j = fill[kk]; fill[kk] = null; } fill[k] = j; okS[k] = true; tries = Math.max(tries, 1); Sfx.tap(); draw(); if (first() < 0) check(); });
       const play = () => speak(w.en, { rate: .75 }); play(); on('re', play);
       draw();
     },
@@ -2452,12 +2485,12 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
   };
   next();
 }
-function roundEnd(okN, n, title, done, extra){
+function roundEnd(okN, n, title, done, extra, hintQ){
   const pct = okN / n, stars = pct >= .9 ? 3 : pct >= .6 ? 2 : 1;
   Sfx.tada(); confetti(stars * 40);
   const stk = TOPICS.filter(t => topicOpen(t) && checkSticker(t));
   $app.innerHTML = playTop(1, 1, done) + talk(stars === 3 ? 'Xuất sắc! Bé là siêu sao tiếng Anh! 🌟' : stars === 2 ? 'Giỏi lắm! Mình ôn thêm chút nữa là thuộc hết!' : 'Cố lên nha! Mochi sẽ cho bé ôn lại những từ khó.', 'happy') +
-    `<div class="stage res"><div class="stars">${'⭐'.repeat(stars)}</div><h2>${esc(title)}</h2><div class="big">Đúng ${okN}/${n}</div>
+    `<div class="stage res"><div class="stars">${'⭐'.repeat(stars)}</div><h2>${esc(title)}</h2><div class="big">Đúng ${okN}/${n}</div>${hintQ ? `<div class="hintsum">💡 Dùng gợi ý ${hintQ} câu (−${hintQ} ⭐) · Mochi sẽ cho bé ôn lại các từ đó</div>` : ''}
      ${stk.map(t => `<div class="sticker">🏅</div><div class="big">Huy hiệu chủ đề <b>${t.vi}</b>!</div>`).join('')}
      ${extra ? `<div class="unlockmsg">${extra}</div>` : ''}
      <button class="btn" style="--c:var(--mint);--d:var(--mint-d)" data-a="c">Tiếp tục ▶</button></div>`;
@@ -2472,13 +2505,14 @@ function book(filter = 'all'){
   Sfx.musicOn();
   let list = Object.values(BYID).filter(w => S.w[w.id]);
   if (filter === 'weak') list = list.filter(w => S.w[w.id].x > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].x - S.w[a.id].x);
+  if (filter === 'unsure') list = list.filter(w => S.w[w.id].h > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].h - S.w[a.id].h);
   if (filter === 'known') list = list.filter(w => known(w.id));
   const groups = new Map(); list.forEach(w => { if (!groups.has(w.t)) groups.set(w.t, []); groups.get(w.t).push(w); });
   $app.innerHTML = topBar('Sổ từ của bé', `${Object.values(BYID).filter(w => S.w[w.id]).length} từ đã gặp`) +
-    `<div class="seg" style="justify-content:center">${[['all', 'Tất cả'], ['known', 'Đã thuộc'], ['weak', 'Hay sai']].map(([k, v]) => `<button aria-pressed="${filter === k}" data-a="f" data-f="${k}">${v}</button>`).join('')}</div>` +
+    `<div class="seg" style="justify-content:center">${[['all', 'Tất cả'], ['known', 'Đã thuộc'], ['unsure', 'Chưa chắc'], ['weak', 'Hay sai']].map(([k, v]) => `<button aria-pressed="${filter === k}" data-a="f" data-f="${k}">${v}</button>`).join('')}</div>` +
     (list.length ? [...groups.entries()].map(([t, ws]) => {
       return `<div class="h2">${t.icon || '📘'} ${t.vi}</div><div class="wgrid">${ws.map(w => `<button class="wc" data-a="w" data-id="${esc(w.id)}"><i class="dot ${stateCls(w)}"></i><span class="pic">${pic(w)}</span><span>${esc(w.en)}</span></button>`).join('')}</div>`; }).join('')
-      : talk(filter === 'weak' ? 'Chưa có từ nào hay sai. Bé giỏi quá!' : 'Sổ từ còn trống. Bé học vài từ là sổ sẽ đầy dần nhé!'));
+      : talk(filter === 'unsure' ? 'Chưa có từ nào phải dùng gợi ý. Bé giỏi quá!' : filter === 'weak' ? 'Chưa có từ nào hay sai. Bé giỏi quá!' : 'Sổ từ còn trống. Bé học vài từ là sổ sẽ đầy dần nhé!'));
   on('f', b => go(book, b.dataset.f));
   on('w', b => wordCard(BYID[b.dataset.id]));
 }
@@ -2488,6 +2522,7 @@ function parents(){
   Sfx.musicOff();
   const seen = Object.values(BYID).filter(w => S.w[w.id] && w.t.id !== 'sight'), kn = totalKnown(), due = dueAll().length;
   const weak = seen.filter(w => S.w[w.id].x > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].x - S.w[a.id].x).slice(0, 10);
+  const unsure = seen.filter(w => S.w[w.id].h > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].h - S.w[a.id].h).slice(0, 10);
   const days = Object.keys(S.log).length;
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button aria-pressed="${S.set[k] === v}" data-a="set" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
   $app.innerHTML = topBar('Góc bố mẹ', 'Tiến độ và cài đặt') +
@@ -2495,6 +2530,8 @@ function parents(){
       <div class="kpi"><div><b>${kn}</b>từ đã thuộc</div><div><b>${seen.length - kn}</b>đang học</div><div><b>${due}</b>đến hạn ôn</div></div>
       <div class="kpi"><div><b>${S.streak.last >= today() - 1 ? S.streak.n : 0}</b>ngày liên tiếp</div><div><b>${days}</b>ngày đã học</div><div><b>${Object.keys(S.stk).length}</b>huy hiệu</div></div></div>
     ${reportPanel()}
+    <div class="panel"><h3>💡 Từ bé chưa chắc (phải dùng gợi ý)</h3>
+      ${unsure.length ? `<div class="wl">${unsure.map(w => `<button data-a="w" data-id="${esc(w.id)}"><span>${pic(w)}</span><span>${esc(w.en)} · ${esc(w.vi)}</span><em>gợi ý ${S.w[w.id].h} lần</em></button>`).join('')}</div>` : '<p class="note">Chưa có từ nào. Khi bé bấm 💡 Gợi ý, từ đó sẽ hiện ở đây để bố mẹ ôn cùng bé.</p>'}</div>
     <div class="panel"><h3>⚠️ Từ bé hay sai</h3>
       ${weak.length ? `<div class="wl">${weak.map(w => `<button data-a="w" data-id="${esc(w.id)}"><span>${pic(w)}</span><span>${esc(w.en)} · ${esc(w.vi)}</span><em>sai ${S.w[w.id].x} lần</em></button>`).join('')}</div>` : '<p class="note">Chưa có từ nào. Khi bé làm sai, từ đó sẽ hiện ở đây.</p>'}</div>
     <div class="panel"><h3>📘 Unit trên lớp</h3>
@@ -2920,7 +2957,8 @@ UENG.spin = (q, cb, ctx) => {
   on('sp', b => { b.disabled = true; const k = ring.indexOf(w); const wh = document.getElementById('wh'); wh.style.transform = `rotate(${720 - k * 60}deg)`; Sfx.sparkle();
     later(() => selfCheck(ctx, '🗣 Bé <b>nói to</b> tên hình này nhé!', `<div class="bigpic">${pic(w)}</div>`, w.en, w.en, cb, [w.id]), 1700); });
 };
-UENG.saysent = (q, cb, ctx) => selfCheck(ctx, '🗣 Nhìn tranh, bé <b>nói cả câu</b> tiếng Anh nhé!', `<div class="bigpic">${picCode(q.s.pic)}</div><div class="hintw">Gợi ý: <b>${esc(q.s.ans)}</b></div>`, q.s.plain, q.s.plain, cb, sentWordIds(q.s, q.u));
+UENG.saysent = (q, cb, ctx) => { selfCheck(ctx, '🗣 Nhìn tranh, bé <b>nói cả câu</b> tiếng Anh nhé!', `<div class="bigpic">${picCode(q.s.pic)}</div><button class="tool" data-a="sh">💡 Gợi ý (−1 ⭐)</button><div class="hintw" id="shw" hidden>Gợi ý: <b>${esc(q.s.ans)}</b></div>`, q.s.plain, q.s.plain, cb, sentWordIds(q.s, q.u));
+  later(() => on('sh', b => { const h = document.getElementById('shw'); if (!h || !h.hidden) return; useHint(); h.hidden = false; b.remove(); }), 0); };
 UENG.answer = (q, cb, ctx) => {
   const it = q.q;
   selfCheck(ctx, '🗣 Mochi hỏi, bé <b>trả lời</b> bằng cả câu nhé!', `<div class="qbox">🐰 ${esc(it.q)} <button class="say sm" data-a="rq">🔊</button></div><div class="bigpic">${picCode(it.pics[0])}</div>`, it.a, it.a, cb, []);
@@ -2982,7 +3020,7 @@ function tilesUI(ctx, o){
   let tries = 0, fin = false;
   const groups = []; if (o.words) groups.push(tgt.map((_, k) => k)); else { let cur = []; tgt.forEach((c, k) => { if (c === ' ') { groups.push(cur); cur = []; } else cur.push(k); }); groups.push(cur); }
   $app.innerHTML = ctx.head(o.talk) + `<div class="stage">${o.top || ''}<div class="slots ${o.words ? 'words' : ''}" id="slots" style="--L:${Math.max(...groups.map(g => g.length))}"></div></div>
-    <div class="bank ${o.words ? 'words' : ''}" id="bank"></div><div class="tools"><button class="tool" data-a="undo">⌫ Xoá</button><button class="tool" data-a="hint">💡 Gợi ý</button></div>`;
+    <div class="bank ${o.words ? 'words' : ''}" id="bank"></div><div class="tools"><button class="tool" data-a="undo">⌫ Xoá</button><button class="tool" data-a="hint">💡 Gợi ý (−1 ⭐)</button></div>`;
   const slotsEl = document.getElementById('slots'), bankEl = document.getElementById('bank');
   const used = () => new Set(fill.filter(x => x != null && x >= 0));
   const first = () => fill.findIndex(x => x === null);
@@ -3006,7 +3044,7 @@ function tilesUI(ctx, o){
   bankEl.onclick = e => { const b = e.target.closest('.tl'); if (!b || fin) return; const k = first(); if (k < 0) return; fill[k] = +b.dataset.j; Sfx.tap(); draw(); if (first() < 0) check(); };
   slotsEl.onclick = e => { const b = e.target.closest('button.slot'); if (!b || fin) return; const k = +b.dataset.k; if (okS[k] || fill[k] === null) return; fill[k] = null; draw(); };
   on('undo', () => { if (fin) return; for (let k = fill.length - 1; k >= 0; k--) if (fill[k] != null && fill[k] >= 0 && !okS[k]) { fill[k] = null; break; } draw(); });
-  on('hint', () => { if (fin) return; const k = tgt.findIndex((c, kk) => !given[kk] && !okS[kk]); if (k < 0) return; fill[k] = null; const u2 = used(); let j = bank.findIndex((b, jj) => b === tgt[k] && !u2.has(jj));
+  on('hint', () => { if (fin) return; const k = tgt.findIndex((c, kk) => !given[kk] && !okS[kk]); if (k < 0) return; useHint(); fill[k] = null; const u2 = used(); let j = bank.findIndex((b, jj) => b === tgt[k] && !u2.has(jj));
     if (j < 0) { const kk = fill.findIndex((f, m) => m !== k && !okS[m] && f != null && f >= 0 && bank[f] === tgt[k]); j = fill[kk]; fill[kk] = null; } fill[k] = j; okS[k] = true; tries = Math.max(tries, 1); Sfx.tap(); draw(); if (first() < 0) check(); });
   draw();
 }
@@ -3507,81 +3545,110 @@ function playPool(){
 function gzLock(g){
   if (g.id === 'opp') return oppOpen() ? '' : 'Học tốt Unit 2 để mở';
   if (g.id === 'riddle') return (S.set.openAll || UNITS.every(u => unitDone(u.id))) && riddlePool().length >= 4 ? '' : 'Mở khi bé học tốt tất cả các Unit';
-  return buildGame(g).length ? '' : 'Học thêm vài từ để mở';
+  return buildGame(g, 0).length ? '' : 'Học thêm vài từ để mở';
 }
 const GZ = [
-  { id: 'bingo', name: 'Bingo nghe nhanh', icon: '🎯', c: '#ff7a59', d: 'Nghe Mochi gọi, chạm đủ 3 hình thẳng hàng!', n: 4 },
-  { id: 'sort', name: 'Phân loại', icon: '🧺', c: '#2fbf8a', d: 'Xếp mỗi từ vào đúng giỏ chủ đề', n: 4 },
-  { id: 'opp', name: 'Cặp trái nghĩa', icon: '↔️', c: '#e05d8a', d: 'Nối từ với từ trái nghĩa: big ↔ small', n: 4 },
-  { id: 'speed', name: 'Nhanh tay', icon: '⚡', c: '#4f8cff', d: 'Đọc từ, chạm hình đúng trước khi hết giờ', n: 10 },
-  { id: 'cross', name: 'Ô chữ mini', icon: '🧩', c: '#9b7bff', d: 'Nhìn hình, điền tên tiếng Anh vào ô chữ', n: 3 },
-  { id: 'riddle', name: 'Tớ là ai?', icon: '🕵️', c: '#f2994a', d: 'Nghe câu đố tiếng Anh, đoán con vật – đồ vật', n: 8 },
-  { id: 'missing', name: 'Cái gì biến mất?', icon: '🎩', c: '#d65db1', d: 'Nhớ các hình, tìm hình vừa biến mất', n: 5 },
-  { id: 'memo', name: 'Lật thẻ nhớ', icon: '🃏', c: '#22a86a', d: 'Lật 2 thẻ tìm cặp hình – chữ giống nhau', n: 3 }
+  { id: 'bingo', name: 'Bingo nghe nhanh', icon: '🎯', c: '#ff7a59', d: 'Nghe Mochi gọi, chạm đủ hình thẳng hàng!' },
+  { id: 'catch', name: 'Hứng hình rơi', icon: '🧺', c: '#f2b01e', d: 'Nghe từ, chạm đúng hình trước khi rơi xuống đất', isNew: 1 },
+  { id: 'hang', name: 'Cứu bóng bay', icon: '🎈', c: '#e8507a', d: 'Đoán từng chữ cái – sai là bóng nổ!', isNew: 1 },
+  { id: 'order', name: 'Nghe nhớ thứ tự', icon: '🔢', c: '#3fa7d6', d: 'Nghe Mochi đọc, chạm hình theo đúng thứ tự', isNew: 1 },
+  { id: 'speed', name: 'Nhanh tay', icon: '⚡', c: '#4f8cff', d: 'Đọc từ, chạm hình đúng trước khi hết giờ' },
+  { id: 'sort', name: 'Phân loại', icon: '🗂️', c: '#2fbf8a', d: 'Xếp mỗi từ vào đúng giỏ chủ đề' },
+  { id: 'cross', name: 'Ô chữ mini', icon: '🧩', c: '#9b7bff', d: 'Nhìn hình, điền tên tiếng Anh vào ô chữ' },
+  { id: 'missing', name: 'Cái gì biến mất?', icon: '🎩', c: '#d65db1', d: 'Nhớ các hình, tìm hình vừa biến mất' },
+  { id: 'memo', name: 'Lật thẻ nhớ', icon: '🃏', c: '#22a86a', d: 'Lật 2 thẻ tìm cặp hình – chữ giống nhau' },
+  { id: 'opp', name: 'Cặp trái nghĩa', icon: '↔️', c: '#e05d8a', d: 'Nối từ với từ trái nghĩa: big ↔ small' },
+  { id: 'riddle', name: 'Tớ là ai?', icon: '🕵️', c: '#f2994a', d: 'Nghe câu đố tiếng Anh, đoán con vật – đồ vật' }
 ];
+/* Cấp độ: mỗi trò có 5 cấp; đạt từ 2 ⭐ ở cấp trước thì mở cấp sau */
+const GLV = [['Làm quen', 'Chậm, ít hình'], ['Tập luyện', 'Nhiều hình hơn'], ['Nhanh hơn', 'Tốc độ tăng'], ['Thử thách', 'Khó hơn, ít trợ giúp'], ['Siêu sao', 'Nhanh nhất, khó nhất']];
+const glvStars = id => { S.gl = S.gl || {}; return S.gl[id] || (S.gl[id] = [0, 0, 0, 0, 0]); };
+const glvOpen = (id, l) => l === 0 || S.set.openAll || glvStars(id)[l - 1] >= 2;
+const glvCur = id => { let l = 0; while (l < 4 && glvOpen(id, l + 1)) l++; return l; };
 function playzone(){
   Sfx.musicOn();
-  const pool = playPool(); S.gm = S.gm || {};
-  $app.innerHTML = topBar('Sân chơi', `${pool.length} từ để chơi`) + talk('Chọn trò chơi nào!') +
-    `<div class="ulist">${GZ.map(g => { const lock = gzLock(g), st = S.gm[g.id] || 0;
-      return `<button class="ucard ${lock ? 'locked' : ''}" style="--c:${g.c}" data-a="g" data-id="${g.id}"><span class="ti">${lock ? '🔒' : g.icon}</span><span class="tx"><b>${g.name}</b><small>${lock || g.d}</small></span><span class="ust" style="color:var(--sun-d)">${st ? '★'.repeat(st) : ''}</span></button>`; }).join('')}</div>`;
-  on('g', b => { const g = GZ.find(x => x.id === b.dataset.id); const lk = gzLock(g); if (lk) { mochi(lk + ' nhé!', 'oops'); Sfx.boing(); return; } playGame(g); });
+  const pool = playPool();
+  $app.innerHTML = topBar('Sân chơi', `${pool.length} từ để chơi`) + talk('Chọn trò chơi nào! Mỗi trò có <b>5 cấp</b>, đạt 2 ⭐ là mở cấp mới.') +
+    `<div class="ulist">${GZ.map(g => { const lock = gzLock(g), cl = glvCur(g.id), st = glvStars(g.id)[cl];
+      return `<button class="ucard ${lock ? 'locked' : ''}" style="--c:${g.c}" data-a="g" data-id="${g.id}"><span class="ti">${lock ? '🔒' : g.icon}</span><span class="tx"><b>${g.name}${g.isNew && !lock ? ' <em class="newtag">mới</em>' : ''}</b><small>${lock || g.d}</small></span>${lock ? '' : `<span class="glv">Cấp ${cl + 1}<i>${'★'.repeat(st)}${'☆'.repeat(3 - st)}</i></span>`}</button>`; }).join('')}</div>`;
+  on('g', b => { const g = GZ.find(x => x.id === b.dataset.id); const lk = gzLock(g); if (lk) { mochi(lk + ' nhé!', 'oops'); Sfx.boing(); return; } go(gzLevels, g); });
 }
-function playGame(g, after){
-  const qs = buildGame(g);
+function gzLevels(g){
+  const ss = glvStars(g.id);
+  $app.innerHTML = topBar(`${g.icon} ${g.name}`, g.d, '', playzone) + talk('Chọn cấp độ nhé! Cấp càng cao càng <b>nhanh</b> và <b>khó</b> hơn.') +
+    `<div class="ulist">${GLV.map(([n, d], l) => { const op = glvOpen(g.id, l);
+      return `<button class="ucard ${op ? '' : 'locked'} ${l === glvCur(g.id) ? 'cur' : ''}" style="--c:${g.c}" data-a="lv" data-l="${l}"><span class="ti lvn">${op ? l + 1 : '🔒'}</span><span class="tx"><b>Cấp ${l + 1} · ${n}</b><small>${op ? d : 'Đạt 2 ⭐ ở cấp ' + l + ' để mở'}</small></span><span class="ust" style="color:var(--sun-d)">${'★'.repeat(ss[l])}${op ? '☆'.repeat(3 - ss[l]) : ''}</span></button>`; }).join('')}</div>`;
+  on('lv', b => { const l = +b.dataset.l; if (!glvOpen(g.id, l)) { mochi(`Đạt 2 ⭐ ở cấp ${l} trước nhé!`, 'oops'); Sfx.boing(); return; } playGame(g, () => go(gzLevels, g), l); });
+}
+function playGame(g, after, lv){
+  if (lv == null) lv = glvCur(g.id);
+  const qs = buildGame(g, lv);
   if (!qs.length) { mochi('Bé học thêm vài từ nữa rồi chơi trò này nhé!', 'oops'); return; }
-  go(gameRound, null, 0, after || playzone, `${g.icon} ${g.name}`, false, null, { qs, track: 'gm:' + g.id,
-    onScore: pct => { const st = pct >= .95 ? 3 : pct >= .75 ? 2 : pct >= .5 ? 1 : 0; S.gm = S.gm || {}; if (st > (S.gm[g.id] || 0)) { S.gm[g.id] = st; save(); return st === 3 ? '🏆 Kỷ lục mới: 3 sao!' : ''; } return ''; } });
+  go(gameRound, null, 0, after || (() => go(gzLevels, g)), `${g.icon} ${g.name} · Cấp ${lv + 1}`, false, null, { qs, track: 'gm:' + g.id,
+    onScore: pct => { const st = pct >= .9 ? 3 : pct >= .7 ? 2 : pct >= .5 ? 1 : 0; const ss = glvStars(g.id), was = ss[lv]; S.gm = S.gm || {};
+      if (st > was) { ss[lv] = st; S.gm[g.id] = Math.max(S.gm[g.id] || 0, st); save(); }
+      if (st >= 2 && was < 2 && lv < 4) return `🔓 Mở khoá <b>Cấp ${lv + 2}</b> – ${GLV[lv + 1][0]}!`;
+      if (st < 2) return `Đạt 2 ⭐ để mở cấp tiếp theo nhé!`;
+      return st > was && st === 3 ? '🏆 Kỷ lục mới: 3 sao!' : ''; } });
 }
-function buildGame(g){
-  const out = [];
-  if (g.id === 'bingo') { const pool = playPool(); if (pool.length < 9) return []; for (let k = 0; k < g.n; k++) out.push({ g: 'bingo', ws: shuffle(pool).slice(0, 9), lv: k }); }
-  if (g.id === 'cross') { const pool = playPool().filter(w => /^[a-z]{3,7}$/.test(w.en)); if (pool.length < 5) return [];
-    for (let k = 0; k < g.n; k++) { const x = makeCross(shuffle(pool).slice(0, 10), k ? 4 : 3); if (x) out.push({ g: 'cross', x }); } }
-  if (g.id === 'riddle') { const rp = riddlePool(), pool = playPool().concat(rp.map(r => r.w)); shuffle(rp).slice(0, g.n).forEach(r => out.push({ g: 'riddle', r, pool })); }
-  if (g.id === 'missing') { const pool = playPool(); if (pool.length < 8) return []; for (let k = 0; k < g.n; k++) { const n = k < 2 ? 4 : k < 4 ? 5 : 6; out.push({ g: 'missing', ws: shuffle(pool).slice(0, n), pool, ms: 2600 + n * 700 }); } }
-  if (g.id === 'memo') { const pool = playPool(); if (pool.length < 6) return []; [4, 5, 6].slice(0, g.n).forEach(n => out.push({ g: 'memory', ws: shuffle(pool).slice(0, n) })); }
-  if (g.id === 'speed') { const pool = playPool(); if (pool.length < 4) return []; cyc(pool, g.n).forEach((w, k) => out.push({ g: 'speed', w, pool, ms: Math.max(3200, 6500 - k * 360) })); }
-  if (g.id === 'sort') { const gs = playGroups(); if (gs.length < 2) return [];
-    for (let k = 0; k < g.n; k++) { const [a, b] = shuffle(gs).slice(0, 2); const ea = new Set(a.W.map(w => w.en)), eb = new Set(b.W.map(w => w.en));
-      const A = shuffle(a.W.filter(w => !eb.has(w.en))).slice(0, 3), B = shuffle(b.W.filter(w => !ea.has(w.en))).slice(0, 3);
-      if (A.length >= 2 && B.length >= 2) out.push({ g: 'sort', ga: a, gb: b, cards: shuffle([...A.map(w => [w, 0]), ...B.map(w => [w, 1])]) }); } }
-  if (g.id === 'opp') { const pairs = OPP_PAIRS.filter(p => oppW(p[0]) && oppW(p[1]));
-    for (let k = 0; k < g.n; k++) { const used = new Set(), sel = []; for (const p of shuffle(pairs)) { if (sel.length >= 4) break; if (used.has(p[0]) || used.has(p[1])) continue; used.add(p[0]); used.add(p[1]); sel.push(p); } out.push({ g: 'opp', pairs: sel }); } }
+const P = (lv, arr) => arr[Math.min(lv, arr.length - 1)];
+function buildGame(g, lv = 0){
+  const out = [], pool = playPool();
+  if (g.id === 'bingo') { const N = P(lv, [3, 3, 3, 4, 4]); if (pool.length < N * N) return []; for (let k = 0; k < P(lv, [3, 4, 4, 4, 5]); k++) out.push({ g: 'bingo', ws: shuffle(pool).slice(0, N * N), N, rate: P(lv, [.8, .85, .95, 1, 1.05]), lv }); }
+  if (g.id === 'cross') { const cp = pool.filter(w => /^[a-z]{3,7}$/.test(w.en)); if (cp.length < 5) return [];
+    for (let k = 0; k < P(lv, [2, 3, 3, 3, 3]); k++) { const x = makeCross(shuffle(cp).slice(0, 12), P(lv, [3, 3, 4, 4, 5])); if (x) out.push({ g: 'cross', x, extra: P(lv, [1, 2, 3, 4, 4]), mute: lv >= 3 }); } }
+  if (g.id === 'riddle') { const rp = riddlePool(), rpool = pool.concat(rp.map(r => r.w)); shuffle(rp).slice(0, P(lv, [6, 8, 8, 8, 10])).forEach(r => out.push({ g: 'riddle', r, pool: rpool, nopt: P(lv, [3, 3, 4, 4, 5]), listenOnly: lv >= 3 })); }
+  if (g.id === 'missing') { if (pool.length < 10) return []; P(lv, [[4, 4, 5], [4, 5, 5, 6], [5, 6, 6, 7], [6, 7, 7, 8], [7, 8, 8, 9]]).forEach(n => out.push({ g: 'missing', ws: shuffle(pool).slice(0, n), pool, ms: Math.round((2600 + n * 700) * P(lv, [1.1, 1, .85, .7, .6])) })); }
+  if (g.id === 'memo') { if (pool.length < 8) return []; P(lv, [[3, 4], [4, 5], [5, 6], [6, 6, 7], [7, 8]]).forEach(n => out.push({ g: 'memory', ws: shuffle(pool).slice(0, n) })); }
+  if (g.id === 'speed') { if (pool.length < 6) return []; const n = P(lv, [8, 10, 10, 12, 12]), m0 = P(lv, [7500, 6500, 5500, 4600, 3800]), m1 = P(lv, [4500, 3800, 3200, 2600, 2200]);
+    cyc(pool, n).forEach((w, k) => out.push({ g: 'speed', w, pool, nopt: P(lv, [3, 4, 4, 6, 6]), listen: lv >= 3 && k % 2 === 1, ms: Math.round(m0 - (m0 - m1) * k / (n - 1)) })); }
+  if (g.id === 'sort') { const gs = playGroups(), nb = P(lv, [2, 2, 3, 3, 3]), per = P(lv, [2, 3, 2, 3, 3]); if (gs.length < nb) return [];
+    for (let k = 0; k < P(lv, [3, 4, 4, 4, 4]); k++) { const G = shuffle(gs).slice(0, nb); const en = G.map(x => new Set(x.W.map(w => w.en)));
+      const cards = G.flatMap((x, gi) => shuffle(x.W.filter(w => en.every((s, j) => j === gi || !s.has(w.en)))).slice(0, per).map(w => [w, gi]));
+      if (cards.length >= nb * 2) out.push({ g: 'sort', G, cards: shuffle(cards), textOnly: lv >= 4 }); } }
+  if (g.id === 'opp') { const pairs = OPP_PAIRS.filter(p => oppW(p[0]) && oppW(p[1])), np = P(lv, [3, 4, 4, 5, 5]);
+    for (let k = 0; k < P(lv, [3, 4, 4, 4, 5]); k++) { const used = new Set(), sel = []; for (const p of shuffle(pairs)) { if (sel.length >= np) break; if (used.has(p[0]) || used.has(p[1])) continue; used.add(p[0]); used.add(p[1]); sel.push(p); } out.push({ g: 'opp', pairs: sel, textOnly: lv >= 3 }); } }
+  if (g.id === 'catch') { if (pool.length < 6) return []; const n = P(lv, [8, 10, 10, 12, 12]);
+    cyc(pool, n).forEach((w, k) => out.push({ g: 'catch', w, pool, nfall: P(lv, [3, 3, 4, 4, 5]), ms: P(lv, [6500, 5500, 4500, 3600, 2900]) - k * P(lv, [0, 40, 60, 60, 60]) })); }
+  if (g.id === 'hang') { const rng = P(lv, [[3, 4], [3, 5], [4, 6], [5, 8], [4, 10]]); const hp = pool.filter(w => /^[a-z]+$/.test(w.en) && w.en.length >= rng[0] && w.en.length <= rng[1]); if (hp.length < 4) return [];
+    shuffle(hp).slice(0, P(lv, [4, 5, 5, 6, 6])).forEach(w => out.push({ g: 'hang', w, lives: P(lv, [6, 5, 5, 4, 3]), extra: P(lv, [3, 4, 5, 6, 7]), noAudio: lv >= 3 })); }
+  if (g.id === 'order') { const len = P(lv, [2, 3, 3, 4, 5]); if (pool.length < len + 3) return [];
+    for (let k = 0; k < P(lv, [4, 5, 5, 5, 5]); k++) { const ws = shuffle(pool).slice(0, len + P(lv, [2, 2, 3, 3, 3])); out.push({ g: 'order', seq: ws.slice(0, len), opts: shuffle(ws.slice()), rate: P(lv, [.75, .8, .9, 1, 1.05]), replay: lv < 4 }); } }
   return out;
 }
 UENG.bingo = (q, cb, ctx) => {
-  const ws = q.ws, LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  const ws = q.ws, N = q.N || 3, LINES = [];
+  for (let r = 0; r < N; r++) { LINES.push([...Array(N)].map((_, c) => r * N + c)); LINES.push([...Array(N)].map((_, c) => c * N + r)); }
+  LINES.push([...Array(N)].map((_, i) => i * N + i)); LINES.push([...Array(N)].map((_, i) => i * N + N - 1 - i));
   const line = pick(LINES), order = shuffle(line.slice()), done = new Set(); let step = 0, miss = 0;
-  $app.innerHTML = ctx.head('🎯 Nghe Mochi gọi tên rồi <b>chạm đúng hình</b>. Đủ 3 hình thẳng hàng là <b>BINGO!</b>') +
-    `<div class="stage"><div class="bingo" id="bg">${ws.map((w, k) => `<button class="bc" data-k="${k}">${pic(w)}<i>⭐</i></button>`).join('')}</div>
+  $app.innerHTML = ctx.head(`🎯 Nghe Mochi gọi tên rồi <b>chạm đúng hình</b>. Đủ ${N} hình thẳng hàng là <b>BINGO!</b>`) +
+    `<div class="stage"><div class="bingo ${N === 4 ? 'n4' : ''}" id="bg">${ws.map((w, k) => `<button class="bc" data-k="${k}">${pic(w)}<i>⭐</i></button>`).join('')}</div>
      <button class="say sm" data-a="re">🔊 Nghe lại</button><div class="bingo-word" id="bw"></div></div>`;
-  const call = () => speak(ws[order[step]].en, { rate: .8 });
+  const call = () => speak(ws[order[step]].en, { rate: q.rate || .8 });
   later(call, 400); on('re', call);
-  $app.querySelectorAll('.bc').forEach(b => b.onclick = () => { if (step >= 3) return; const k = +b.dataset.k;
+  $app.querySelectorAll('.bc').forEach(b => b.onclick = () => { if (step >= N) return; const k = +b.dataset.k;
     if (k === order[step]) { done.add(k); b.classList.add('hit'); Sfx.good(); step++;
-      if (step >= 3) { const bg = document.getElementById('bg'); line.forEach(i => bg.children[i].classList.add('win')); document.getElementById('bw').textContent = 'BINGO! 🎉'; Sfx.win ? Sfx.win() : Sfx.good(); later(() => cb(miss === 0, line.map(i => ws[i].id)), 900); }
+      if (step >= N) { const bg = document.getElementById('bg'); line.forEach(i => bg.children[i].classList.add('win')); document.getElementById('bw').textContent = 'BINGO! 🎉'; Sfx.win ? Sfx.win() : Sfx.good(); later(() => cb(miss === 0, line.map(i => ws[i].id)), 900); }
       else later(call, 650); }
-    else { miss++; b.classList.add('shake'); later(() => b.classList.remove('shake'), 400); Sfx.boing(); if (miss === 2) document.getElementById('bw').textContent = ws[order[step]].en; later(call, 400); } });
+    else { miss++; b.classList.add('shake'); later(() => b.classList.remove('shake'), 400); Sfx.boing(); if (miss === 2 && (q.lv || 0) < 3) document.getElementById('bw').textContent = ws[order[step]].en; later(call, 400); } });
 };
 UENG.sort = (q, cb, ctx) => {
-  let i = 0, miss = 0; const cnt = [0, 0];
-  const G = [q.ga, q.gb];
-  $app.innerHTML = ctx.head('🧺 Từ này thuộc <b>giỏ nào</b>? Chạm vào giỏ đúng nhé!') +
-    `<div class="stage"><div class="sortcard" id="sc"></div><div class="baskets">${G.map((g, k) => `<button class="basket" style="--c:${g.c}" data-b="${k}"><span class="bi">${g.icon}</span><b>${esc(g.name)}</b><span class="bn" id="bn${k}">0</span></button>`).join('')}</div></div>`;
+  let i = 0, miss = 0; const G = q.G, cnt = G.map(() => 0);
+  $app.innerHTML = ctx.head(q.textOnly ? '🗂️ <b>Đọc từ</b> rồi chạm vào giỏ đúng chủ đề nhé!' : '🗂️ Từ này thuộc <b>giỏ nào</b>? Chạm vào giỏ đúng nhé!') +
+    `<div class="stage"><div class="sortcard" id="sc"></div><div class="baskets n${G.length}">${G.map((g, k) => `<button class="basket" style="--c:${g.c}" data-b="${k}"><span class="bi">${g.icon}</span><b>${esc(g.name)}</b><span class="bn" id="bn${k}">0</span></button>`).join('')}</div></div>`;
   const sc = document.getElementById('sc');
-  const show = () => { const [w] = q.cards[i]; sc.innerHTML = `<span class="pic">${pic(w)}</span><b>${esc(w.en)}</b>`; sc.classList.remove('fly0', 'fly1'); void sc.offsetWidth; sc.classList.add('pop'); speak(w.en, { rate: .85 }); };
+  const show = () => { const [w] = q.cards[i]; sc.innerHTML = q.textOnly ? `<b>${esc(w.en)}</b>` : `<span class="pic">${pic(w)}</span><b>${esc(w.en)}</b>`; sc.classList.remove('fly0', 'fly1', 'fly2'); void sc.offsetWidth; sc.classList.add('pop'); if (!q.textOnly) speak(w.en, { rate: .85 }); };
   show();
   $app.querySelectorAll('.basket').forEach(b => b.onclick = () => { if (i >= q.cards.length) return; const k = +b.dataset.b, [w, right] = q.cards[i];
-    if (k === right) { Sfx.good(); cnt[k]++; document.getElementById('bn' + k).textContent = cnt[k]; sc.classList.remove('pop'); sc.classList.add('fly' + k); i++;
+    if (k === right) { Sfx.good(); if (q.textOnly) speak(w.en, { rate: .85 }); cnt[k]++; document.getElementById('bn' + k).textContent = cnt[k]; sc.classList.remove('pop'); sc.classList.add('fly' + Math.min(k, 1)); i++;
       if (i >= q.cards.length) later(() => cb(miss <= 1, q.cards.map(c => c[0].id)), 500); else later(show, 450); }
-    else { miss++; Sfx.boing(); b.classList.add('shake'); later(() => b.classList.remove('shake'), 400); mochi(`<b>${esc(w.en)}</b> là <b>${esc(w.vi)}</b> – thuộc giỏ kia đó!`, 'oops'); } });
+    else { miss++; Sfx.boing(); b.classList.add('shake'); later(() => b.classList.remove('shake'), 400); mochi(`<b>${esc(w.en)}</b> là <b>${esc(w.vi)}</b> – thuộc giỏ <b>${esc(G[right].name)}</b> đó!`, 'oops'); } });
 };
 UENG.opp = (q, cb, ctx) => {
   const L = q.pairs.map(p => oppW(p[0])), R = shuffle(q.pairs.map(p => oppW(p[1]))); let sel = null, miss = 0, got = 0;
   $app.innerHTML = ctx.head('↔️ Chạm 1 từ bên trái, rồi chạm <b>từ trái nghĩa</b> bên phải!') +
-    `<div class="stage"><div class="oppg"><div class="col">${L.map((w, k) => `<button class="oc L" data-k="${k}">${pic(w)}<b>${esc(w.en)}</b></button>`).join('')}</div>
-     <div class="col">${R.map((w, k) => `<button class="oc R" data-k="${k}">${pic(w)}<b>${esc(w.en)}</b></button>`).join('')}</div></div></div>`;
+    `<div class="stage"><div class="oppg"><div class="col">${L.map((w, k) => `<button class="oc L" data-k="${k}">${q.textOnly ? '' : pic(w)}<b>${esc(w.en)}</b></button>`).join('')}</div>
+     <div class="col">${R.map((w, k) => `<button class="oc R" data-k="${k}">${q.textOnly ? '' : pic(w)}<b>${esc(w.en)}</b></button>`).join('')}</div></div></div>`;
   const Ls = [...$app.querySelectorAll('.oc.L')], Rs = [...$app.querySelectorAll('.oc.R')];
   Ls.forEach(b => b.onclick = () => { if (b.classList.contains('ok')) return; Ls.forEach(x => x.classList.remove('sel')); b.classList.add('sel'); sel = +b.dataset.k; speak(L[sel].en); Sfx.tap(); });
   Rs.forEach(b => b.onclick = () => { if (b.classList.contains('ok')) return; const w = R[+b.dataset.k]; if (sel == null) { speak(w.en); return; }
@@ -3591,11 +3658,12 @@ UENG.opp = (q, cb, ctx) => {
     else { miss++; Sfx.boing(); b.classList.add('shake'); later(() => b.classList.remove('shake'), 400); } });
 };
 UENG.speed = (q, cb, ctx) => {
-  const w = q.w, others = [], keys = new Set([picKey(w)]); for (const x of shuffle(q.pool)) { if (others.length >= 3) break; if (keys.has(picKey(x)) || x.en === w.en) continue; keys.add(picKey(x)); others.push(x); }
+  const w = q.w, others = [], keys = new Set([picKey(w)]), no = (q.nopt || 4) - 1; for (const x of shuffle(q.pool)) { if (others.length >= no) break; if (keys.has(picKey(x)) || x.en === w.en) continue; keys.add(picKey(x)); others.push(x); }
   const opts = shuffle([w, ...others]); let over = false;
-  $app.innerHTML = ctx.head('⚡ Đọc từ thật nhanh, <b>chạm hình đúng</b> trước khi hết giờ!') +
-    `<div class="stage"><div class="timer"><i id="tm" style="animation-duration:${q.ms}ms"></i></div><div class="sentence big2">${esc(w.en)}</div>
-     <div class="popts n4">${opts.map(o => `<button class="popt" data-id="${esc(o.id)}">${pic(o)}</button>`).join('')}</div></div>`;
+  $app.innerHTML = ctx.head(q.listen ? '⚡ <b>Nghe</b> Mochi đọc, chạm hình đúng thật nhanh!' : '⚡ Đọc từ thật nhanh, <b>chạm hình đúng</b> trước khi hết giờ!') +
+    `<div class="stage"><div class="timer"><i id="tm" style="animation-duration:${q.ms}ms"></i></div><div class="sentence big2">${q.listen ? '🔊' : esc(w.en)}</div>
+     <div class="popts ${opts.length === 4 ? 'n4' : ''}">${opts.map(o => `<button class="popt" data-id="${esc(o.id)}">${pic(o)}</button>`).join('')}</div></div>`;
+  if (q.listen) { speak(w.en, { rate: .9 }); $app.querySelector('.sentence').onclick = () => speak(w.en, { rate: .9 }); }
   const tm = later(() => { if (over) return; over = true; Sfx.bad(); mochi(`Hết giờ! <b>${esc(w.en)}</b> là ${esc(w.vi)} nè.`, 'oops'); $app.querySelector(`.popt[data-id="${CSS.escape(w.id)}"]`).classList.add('ok'); speak(w.en); later(() => cb(false, [w.id]), 1100); }, q.ms);
   $app.querySelectorAll('.popt').forEach(b => b.onclick = () => { if (over) return; over = true; clearTimeout(tm); document.getElementById('tm').style.animationPlayState = 'paused';
     if (b.dataset.id === w.id) { b.classList.add('ok'); Sfx.good(); speak(w.en); cb(true, [w.id]); }
@@ -3639,11 +3707,11 @@ UENG.cross = (q, cb, ctx) => {
   const startN = {}; X.words.forEach(x => { startN[K(x.r, x.c)] = startN[K(x.r, x.c)] ? startN[K(x.r, x.c)] + '/' + x.n : x.n; });
   $app.innerHTML = ctx.head('🧩 <b>Ô chữ</b>! Chọn một hình, rồi chạm chữ cái để điền tên tiếng Anh vào ô.') +
     `<div class="stage"><div class="xgrid" id="xg" style="grid-template-columns:repeat(${X.cols},1fr);--cols:${X.cols}"></div>
-     <div class="xclues" id="xc"></div><div class="bank" id="xb"></div><div class="tools"><button class="tool" data-a="xun">⌫ Xoá</button><button class="tool" data-a="xhint">💡 Gợi ý</button></div></div>`;
+     <div class="xclues" id="xc"></div><div class="bank" id="xb"></div><div class="tools"><button class="tool" data-a="xun">⌫ Xoá</button><button class="tool" data-a="xhint">💡 Gợi ý (−1 ⭐)</button></div></div>`;
   const xg = document.getElementById('xg'), xc = document.getElementById('xc'), xb = document.getElementById('xb');
   let bank = [];
   const mkBank = () => { const x = X.words[sel]; const need = x.cells.filter(([r, c]) => !lock[K(r, c)]).map(([r, c], i) => x.w.en[x.cells.findIndex(([rr, cc]) => rr === r && cc === c)]);
-    bank = shuffle([...need, ...shuffle('abcdefghilmnoprstuwy'.split('').filter(ch => !x.w.en.includes(ch))).slice(0, 2)]).map(ch => ({ ch, used: false })); };
+    bank = shuffle([...need, ...shuffle('abcdefghilmnoprstuwy'.split('').filter(ch => !x.w.en.includes(ch))).slice(0, q.extra || 2)]).map(ch => ({ ch, used: false })); };
   const draw = () => {
     let h = ''; for (let r = 0; r < X.rows; r++) for (let c = 0; c < X.cols; c++) { const k = K(r, c);
       if (!own[k]) { h += '<i class="xe"></i>'; continue; }
@@ -3652,7 +3720,7 @@ UENG.cross = (q, cb, ctx) => {
     xg.innerHTML = h;
     xc.innerHTML = X.words.map((x, wi) => `<button class="xq ${wi === sel ? 'sel' : ''} ${solved.has(wi) ? 'done' : ''}" data-w="${wi}"><b>${x.n}${x.d === 'a' ? '→' : '↓'}</b>${pic(x.w)}</button>`).join('');
     xb.innerHTML = solved.has(sel) ? '' : bank.map((t, j) => `<button class="tl ${t.used ? 'used' : ''}" data-j="${j}">${t.ch}</button>`).join(''); };
-  const choose = wi => { sel = wi; X.words[wi].cells.forEach(([r, c]) => { const k = K(r, c); if (!lock[k]) delete fill[k]; }); mkBank(); draw(); speak(X.words[wi].w.en, { rate: .8 }); };
+  const choose = wi => { sel = wi; X.words[wi].cells.forEach(([r, c]) => { const k = K(r, c); if (!lock[k]) delete fill[k]; }); mkBank(); draw(); if (!q.mute) speak(X.words[wi].w.en, { rate: .8 }); };
   const check = () => { const x = X.words[sel], got = x.cells.map(([r, c]) => lock[K(r, c)] || fill[K(r, c)]).join('');
     if (got.length < x.w.en.length || x.cells.some(([r, c]) => !(lock[K(r, c)] || fill[K(r, c)]))) return;
     if (got === x.w.en) { x.cells.forEach(([r, c]) => { lock[K(r, c)] = x.w.en[x.cells.findIndex(([rr, cc]) => rr === r && cc === c)]; }); solved.add(sel); Sfx.good(); speak(x.w.en);
@@ -3665,7 +3733,7 @@ UENG.cross = (q, cb, ctx) => {
     const cell = x.cells.find(([r, c]) => !lock[K(r, c)] && !fill[K(r, c)]); if (!cell) return; fill[K(...cell)] = t.ch; t.used = true; t.cell = K(...cell); Sfx.tap(); draw(); check(); };
   on('xun', () => { const x = X.words[sel]; for (let i = x.cells.length - 1; i >= 0; i--) { const k = K(...x.cells[i]); if (!lock[k] && fill[k]) { const t = bank.find(t => t.used && t.cell === k); if (t) t.used = false; delete fill[k]; break; } } draw(); });
   on('xhint', () => { const x = X.words[sel]; const i = x.cells.findIndex(([r, c]) => !lock[K(r, c)] && !fill[K(r, c)]); if (i < 0) return; const ch = x.w.en[i], t = bank.find(t => !t.used && t.ch === ch);
-    if (!t) return; miss = Math.max(miss, 1); fill[K(...x.cells[i])] = ch; t.used = true; t.cell = K(...x.cells[i]); Sfx.tap(); draw(); check(); });
+    if (!t) return; useHint(); miss = Math.max(miss, 1); fill[K(...x.cells[i])] = ch; t.used = true; t.cell = K(...x.cells[i]); Sfx.tap(); draw(); check(); });
   choose(0);
 };
 /* ---- Câu đố "Tớ là ai?" ---- */
@@ -3724,12 +3792,12 @@ function riddlePool(){ const all = RIDDLES.map(([id, c]) => ({ w: BYID[id], c })
   return all.filter(r => activeWord(r.w)); }
 UENG.riddle = (q, cb, ctx) => {
   const w = q.r.w, lines = q.r.c, others = [], keys = new Set([picKey(w)]);
-  for (const x of shuffle(q.pool)) { if (others.length >= 2) break; if (keys.has(picKey(x)) || x.en === w.en) continue; keys.add(picKey(x)); others.push(x); }
+  for (const x of shuffle(q.pool)) { if (others.length >= (q.nopt || 3) - 1) break; if (keys.has(picKey(x)) || x.en === w.en) continue; keys.add(picKey(x)); others.push(x); }
   const opts = shuffle([w, ...others]); let shown = 1, tries = 0;
   $app.innerHTML = ctx.head('🕵️ Nghe Mochi đố, đoán xem <b>là con gì / cái gì</b>?') +
     `<div class="stage"><div class="riddle" id="rd"></div><button class="say sm" data-a="re">🔊 Nghe lại</button>
-     <div class="popts n3">${opts.map(o => `<button class="popt" data-id="${esc(o.id)}">${pic(o)}</button>`).join('')}</div></div>`;
-  const draw = () => { document.getElementById('rd').innerHTML = lines.slice(0, shown).map(t => `<p>${esc(t)}</p>`).join(''); };
+     <div class="popts ${opts.length === 4 ? 'n4' : ''}">${opts.map(o => `<button class="popt" data-id="${esc(o.id)}">${pic(o)}</button>`).join('')}</div></div>`;
+  const draw = () => { document.getElementById('rd').innerHTML = q.listenOnly ? '<p>🎧 Nghe kỹ câu đố nhé…</p>' : lines.slice(0, shown).map(t => `<p>${esc(t)}</p>`).join(''); };
   const read = () => { stopSpeakSafe(); lines.slice(0, shown).forEach((t, k) => speak(t, { rate: .85, queue: k > 0 })); };
   shown = lines.length; draw(); later(read, 300); on('re', read);
   $app.querySelectorAll('.popt').forEach(b => b.onclick = () => { if (b.dataset.id === w.id) { b.classList.add('ok'); Sfx.good(); speak(w.en + '!'); cb(tries === 0, [w.id]); } else { tries++; b.classList.add('bad', 'shake'); Sfx.boing(); speak(BYID[b.dataset.id].en); } });
@@ -3751,6 +3819,58 @@ UENG.missing = (q, cb, ctx) => {
     $app.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (b.dataset.id === gone.id) { b.classList.add('ok'); const g = $app.querySelector('.msc.gone'); if (g) { g.classList.remove('gone'); g.innerHTML = `${pic(gone)}<b>${esc(gone.en)}</b>`; } Sfx.good(); speak(gone.en); cb(tries === 0, [gone.id]); }
       else { tries++; b.classList.add('bad', 'shake'); Sfx.boing(); } });
   }, q.ms);
+};
+/* ---- Hứng hình rơi ---- */
+UENG.catch = (q, cb, ctx) => {
+  const w = q.w, keys = new Set([picKey(w)]), items = [w];
+  for (const x of shuffle(q.pool)) { if (items.length >= q.nfall) break; if (keys.has(picKey(x)) || x.en === w.en) continue; keys.add(picKey(x)); items.push(x); }
+  const lanes = shuffle(items.map((_, k) => k)); let over = false, miss = 0;
+  $app.innerHTML = ctx.head('🧺 Nghe Mochi đọc, <b>chạm đúng hình</b> trước khi nó rơi xuống đất!') +
+    `<div class="stage"><button class="say sm" data-a="re">🔊 Nghe lại</button><div class="fallzone" id="fz">${items.map((x, k) => {
+      const dur = Math.round(q.ms * (x === w ? 1 : .8 + Math.random() * .45)), del = Math.round((x === w ? Math.random() * .15 : Math.random() * .35) * q.ms);
+      return `<button class="fall" data-id="${esc(x.id)}" style="left:calc(${(lanes[k] + .5) * 100 / items.length}% - 38px);animation-duration:${dur}ms;animation-delay:${del}ms">${pic(x)}</button>`; }).join('')}<div class="ground"></div></div></div>`;
+  const say = () => speak(w.en, { rate: .85 }); say(); on('re', say);
+  const tgt = $app.querySelector(`.fall[data-id="${CSS.escape(w.id)}"]`);
+  const fail = () => { if (over) return; over = true; Sfx.bad(); $app.querySelectorAll('.fall').forEach(b => b.style.animationPlayState = 'paused'); tgt.classList.add('ok', 'land'); mochi(`Rơi mất rồi! <b>${esc(w.en)}</b> là ${esc(w.vi)} nè.`, 'oops'); say(); later(() => cb(false, [w.id]), 1300); };
+  tgt.addEventListener('animationend', fail);
+  $app.querySelectorAll('.fall').forEach(b => b.onclick = () => { if (over) return;
+    if (b === tgt) { over = true; $app.querySelectorAll('.fall').forEach(x => x.style.animationPlayState = 'paused'); b.classList.add('ok', 'caught'); Sfx.good(); say(); later(() => cb(miss === 0, [w.id]), 600); }
+    else { miss++; Sfx.boing(); b.classList.add('bad', 'gone'); speak(BYID[b.dataset.id].en); } });
+};
+/* ---- Cứu bóng bay (đoán chữ) ---- */
+UENG.hang = (q, cb, ctx) => {
+  const w = q.w, word = w.en.toLowerCase(), need = new Set(word.split('')), got = new Set(); let lives = q.lives, lost = 0, over = false;
+  const keys = shuffle([...need, ...shuffle('abcdefghijklmnoprstuvwy'.split('').filter(c => !need.has(c))).slice(0, q.extra)]);
+  $app.innerHTML = ctx.head('🎈 Đoán <b>từng chữ cái</b> của từ này. Chọn sai thì một quả bóng bay sẽ nổ!') +
+    `<div class="stage"><div class="balloons" id="bl">${'<i>🎈</i>'.repeat(lives)}</div><div class="bigpic" style="min-height:84px">${pic(w)}</div>
+     ${q.noAudio ? '' : '<button class="say sm" data-a="re">🔊 Nghe</button>'}<div class="hslots" id="hs"></div>
+     <div class="keys" id="ky">${keys.map(c => `<button class="key" data-c="${c}">${c}</button>`).join('')}</div>
+     <div class="tools"><button class="tool" data-a="hh">💡 Gợi ý (−1 ⭐)</button></div></div>`;
+  const draw = () => { document.getElementById('hs').innerHTML = word.split('').map(c => `<span class="hsl ${got.has(c) ? 'on' : ''}">${got.has(c) ? c : ''}</span>`).join(''); };
+  const finish = win => { over = true; $app.querySelectorAll('.key').forEach(k => k.disabled = true); word.split('').forEach(c => got.add(c)); draw(); speak(w.en, { rate: .8 });
+    if (win) { Sfx.good(); mochi(lost ? 'Cứu được bóng bay rồi! 🎉' : 'Không nổ quả nào – siêu quá! 🌟', 'happy'); later(() => cb(lost <= 1, [w.id]), 1000); }
+    else { Sfx.bad(); mochi(`Bóng nổ hết rồi! Từ đó là <b>${esc(w.en)}</b> – ${esc(w.vi)}.`, 'oops'); later(() => cb(false, [w.id]), 1600); } };
+  const tryC = (c, b) => { if (over || got.has(c)) return; if (b) b.disabled = true;
+    if (need.has(c)) { got.add(c); b && b.classList.add('ok'); Sfx.tap(); draw(); if ([...need].every(x => got.has(x))) finish(true); }
+    else { lives--; lost++; b && b.classList.add('bad'); Sfx.boing(); const bl = document.getElementById('bl').children[lives]; if (bl) { bl.classList.add('pop'); } if (lives <= 0) finish(false); } };
+  document.getElementById('ky').onclick = e => { const b = e.target.closest('.key'); if (b) tryC(b.dataset.c, b); };
+  on('hh', () => { if (over) return; const c = word.split('').find(x => !got.has(x)); if (!c) return; useHint(); tryC(c, $app.querySelector(`.key[data-c="${c}"]`)); });
+  on('re', () => speak(w.en, { rate: .8 })); if (!q.noAudio) later(() => speak(w.en, { rate: .8 }), 300);
+  draw();
+};
+/* ---- Nghe nhớ thứ tự ---- */
+UENG.order = (q, cb, ctx) => {
+  const seq = q.seq; let step = 0, miss = 0, ready = false, over = false;
+  $app.innerHTML = ctx.head(`🔢 Nghe Mochi đọc <b>${seq.length} từ</b>, rồi chạm hình theo <b>đúng thứ tự</b> nhé!`) +
+    `<div class="stage"><div class="ordline" id="ol">${seq.map((_, k) => `<span>${k + 1}</span>`).join('')}</div>${q.replay ? '<button class="say sm" data-a="re">🔊 Nghe lại</button>' : ''}
+     <div class="popts ${q.opts.length === 4 ? 'n4' : ''}">${q.opts.map(o => `<button class="popt" data-id="${esc(o.id)}">${pic(o)}</button>`).join('')}</div></div>`;
+  const read = () => { ready = false; seq.forEach((w, k) => later(() => { speak(w.en, { rate: q.rate }); const s = document.getElementById('ol'); if (s) [...s.children].forEach((x, j) => x.classList.toggle('now', j === k)); }, 300 + k * 1300));
+    later(() => { ready = true; const s = document.getElementById('ol'); if (s) [...s.children].forEach(x => x.classList.remove('now')); mochi('Giờ bé chạm theo thứ tự nhé!'); }, 300 + seq.length * 1300); };
+  read(); on('re', () => { if (ready && !over) { step = 0; $app.querySelectorAll('.popt').forEach(b => { b.classList.remove('ok'); b.removeAttribute('data-n'); }); read(); } });
+  $app.querySelectorAll('.popt').forEach(b => b.onclick = () => { if (!ready || over || b.classList.contains('ok')) return;
+    if (b.dataset.id === seq[step].id) { b.classList.add('ok'); b.dataset.n = step + 1; Sfx.good(); step++; if (step >= seq.length) { over = true; later(() => cb(miss === 0, seq.map(w => w.id)), 700); } }
+    else { miss++; Sfx.boing(); b.classList.add('shake'); later(() => b.classList.remove('shake'), 400);
+      if (miss >= 2) { over = true; seq.forEach((w, k) => { const t = $app.querySelector(`.popt[data-id="${CSS.escape(w.id)}"]`); t.classList.add('ok'); t.dataset.n = k + 1; }); mochi('Thứ tự đúng là: ' + seq.map(w => `<b>${esc(w.en)}</b>`).join(' → '), 'oops'); later(() => cb(false, seq.map(w => w.id)), 2200); } } });
 };
 
 /* Hình đã được bố duyệt (đợt 1: các Unit, đợt 2: phonics) — ghi đè pic theo id */
