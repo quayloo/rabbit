@@ -178,6 +178,12 @@ button:focus-visible { outline: 3px solid var(--lilac); outline-offset: 2px; }
 .key.ok { background: var(--mint); color: #fff; } .key.bad { background: #ffd6dc; color: #c43950; } .key:disabled { opacity: .85; }
 .ordline { display: flex; gap: 10px; justify-content: center; } .ordline span { width: 36px; height: 36px; border-radius: 50%; background: var(--line); display: grid; place-items: center; font-weight: 800; color: var(--soft); transition: transform .2s; } .ordline span.now { background: var(--lilac); color: #fff; transform: scale(1.2); }
 .popt[data-n] { position: relative; } .popt[data-n]::after { content: attr(data-n); position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; background: var(--mint); color: #fff; font-weight: 800; display: grid; place-items: center; }
+.chunks { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; } .cgap { width: 14px; }
+.chk { border: 0; min-width: 48px; height: 58px; padding: 0 10px; border-radius: 16px; font-family: var(--display); font-weight: 800; font-size: 2rem; color: #fff; box-shadow: 0 6px 0 rgba(0,0,0,.12); transition: transform .15s; }
+.chk.c { background: #4f8cff; } .chk.v { background: #e8507a; } .chk.lit { transform: translateY(-6px) scale(1.12); }
+.vtag { color: #e8507a; }
+.skchips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; } .skc { background: var(--page); border-radius: 12px; padding: 6px 8px; font-weight: 800; font-size: .85rem; display: flex; flex-direction: column; } .skc small { font-weight: 600; color: var(--soft); font-size: .72rem; } .skc.f { background: #dcf6ea; } .skc.m { background: #e6f0ff; } .skc.l { background: #fff1e0; }
+.skrow { display: grid; grid-template-columns: 74px 1fr auto; gap: 4px 8px; align-items: center; font-weight: 700; font-size: .9rem; margin: 6px 0; } .skrow small { grid-column: 2 / 4; color: var(--soft); font-weight: 600; font-size: .75rem; margin-top: -4px; } .skbar { height: 10px; width: 100%; min-width: 90px; display: block; background: var(--line); border-radius: 999px; overflow: hidden; } .skbar i { display: block; height: 100%; background: var(--mint); border-radius: 999px; }
 .hintsum { font-weight: 700; color: #b8611a; background: #fff1e0; border-radius: 14px; padding: 8px 12px; font-size: .9rem; text-align: center; }
 .h2 { font-family: var(--display); font-weight: 800; font-size: 1.1rem; margin: 4px 0 -4px; color: var(--soft); }
 
@@ -1873,6 +1879,29 @@ function record(id, ok, opts = {}){
   if (S.streak.last !== t) { S.streak.n = S.streak.last === t - 1 ? S.streak.n + 1 : 1; S.streak.last = t; }
   save();
 }
+/* ===== Thành thạo theo 4 kỹ năng: Nghe (L) · Nói (S) · Đọc (R) · Viết/Spelling (W) =====
+   Mỗi từ có hộp ôn riêng cho từng kỹ năng. Đúng + nhanh → lên hộp, ôn thưa dần; đúng nhưng chậm → chưa quá hộp 3 (chưa phản xạ);
+   sai / dùng gợi ý → về hộp đầu, ôn lại sớm. "Thành thạo" = hộp ≥ 4 và thời gian trả lời trong ngưỡng. */
+const SKN = { L: ['🎧', 'Nghe'], S: ['🗣️', 'Nói'], R: ['📖', 'Đọc'], W: ['✍️', 'Viết'] };
+const SKILL_OF = { balloon: 'L', tf: 'L', hearpic: 'L', heartf: 'L', number: 'L', qapic: 'L', bingo: 'L', catch: 'L', order: 'L', riddle: 'L', initial: 'L', vowel: 'L',
+  say: 'S', saysent: 'S', answer: 'S', spin: 'S',
+  mole: 'R', pickword: 'R', readpic: 'R', readtf: 'R', halves: 'R', story: 'R', instr: 'R', blank: 'R', speed: 'R', sort: 'R', opp: 'R', missing: 'R', findpic: 'R', sight4: 'R', flashw: 'R', blend: 'R',
+  spell: 'W', fill: 'W', lcw: 'W', trace: 'W', cross: 'W', hang: 'W', build: 'W', dict: 'W', chunks: 'W' };
+const SK_NOTIME = new Set(['chunks', 'trace', 'cross', 'bingo', 'sort', 'opp', 'missing', 'order', 'story', 'halves', 'build']);
+const skLimit = (sk, w) => sk === 'W' ? 3500 + 1200 * (w ? w.en.replace(/ /g, '').length : 5) : sk === 'L' ? 6000 : sk === 'R' ? 5000 : 99999;
+const skRec = (id, sk) => (S.m && S.m[id] && S.m[id][sk]) || null;
+const skFluent = (id, sk) => { const r = skRec(id, sk); return !!r && r.b >= 4 && (sk === 'S' || (r.t > 0 && r.t <= skLimit(sk, BYID[id]))); };
+const mastered = id => ['L', 'S', 'R', 'W'].every(k => skFluent(id, k));
+function recSkill(id, sk, ok, ms, hinted){
+  S.m = S.m || {}; const m = S.m[id] || (S.m[id] = {}); const r = m[sk] || (m[sk] = { b: 0, d: 0, n: 0, c: 0, t: 0 }); const t = today();
+  r.n++;
+  if (!ok || hinted) { r.b = r.b >= 3 ? 1 : 0; r.d = t + (hinted && ok ? 1 : 0); r.slow = 0; return; }
+  r.c++;
+  if (ms != null) { r.t = r.t ? Math.round(r.t * .6 + ms * .4) : Math.round(ms); }
+  const fast = sk === 'S' || ms == null || ms <= skLimit(sk, BYID[id]);
+  r.b = Math.min(fast ? 6 : 3, r.b + 1); r.slow = fast ? 0 : (r.slow || 0) + 1;
+  r.d = t + INT[r.b];
+}
 const seenIn = t => t.list.filter(w => S.w[w.id]);
 const knownIn = t => t.list.filter(w => known(w.id));
 const activeWord = w => w.t.id !== 'sight' && (!TOPICS.includes(w.t) || UNITS.some(u => u.W.includes(w)) || topicOpen(w.t));
@@ -2154,6 +2183,7 @@ function wordCard(w){
     <div class="ex">${esc(w.example)}</div>
     <button class="say sm" data-s="e" style="background:var(--mint);box-shadow:0 4px 0 var(--mint-d)">🔊 Nghe câu</button>
     <p class="note">${s ? `Đúng ${s.c} lần · sai ${s.x} lần · ${s.b >= 3 ? 'đã thuộc ✅' : 'đang học'}` : 'Bé chưa gặp từ này.'}</p>
+    ${s ? `<div class="skchips">${['L', 'S', 'R', 'W'].map(k => { const r = skRec(w.id, k), f = skFluent(w.id, k); return `<span class="skc ${f ? 'f' : r ? (r.b >= 2 ? 'm' : 'l') : ''}">${SKN[k][0]} ${SKN[k][1]}<small>${f ? 'thành thạo' : r ? (r.slow && r.b >= 3 ? 'còn chậm' : 'đang luyện') : 'chưa luyện'}${r && r.t && k !== 'S' ? ' · ' + (r.t / 1000).toFixed(1) + 's' : ''}</small></span>`; }).join('')}</div>` : ''}
     <button class="btn ghost" data-s="x">Đóng</button></div>`;
   document.body.appendChild(m);
   m.addEventListener('click', e => {
@@ -2167,31 +2197,60 @@ function wordCard(w){
 /* ================= Hôm nay học gì ================= */
 function daily(){
   const t0 = today(), u = curUnit();
-  const due = dueAll().sort((a, b) => S.w[a.id].b - S.w[b.id].b).slice(0, 8);
   const steps = [];
-  if (due.length) steps.push({ name: `Nhắc lại ${due.length} từ cũ`, run: next => go(flash, due, next) });
-  // phần chính: kỹ năng còn yếu nhất của Unit đang học
+  // ① Ôn 3 kỹ năng Nghe – Đọc – Nói cho các từ đến hạn (kể cả từ đã thuộc, đến khi thành thạo & phản xạ nhanh)
+  const rv = reviewQs(); if (rv.length) steps.push({ name: `🔁 Ôn tập ${rv.length} câu: nghe · đọc · nói`, run: next => go(gameRound, null, 0, next, 'Ôn tập hôm nay', false, null, { qs: rv, track: 'review' }) });
+  // ② Spelling mỗi ngày: cấu tạo từ → ghép chữ → nghe viết
+  const sp = spellingQs(u); if (sp.length) steps.push({ name: `✍️ Spelling: ${new Set(sp.map(q => q.w.en)).size} từ`, run: next => go(gameRound, null, 0, next, 'Spelling hôm nay', false, null, { qs: sp, track: 'spelling' }) });
+  // ③ phần chính: kỹ năng còn yếu nhất của Unit đang học
   const cand = [];
   SK.forEach(s => { for (let l = 0; l < 3; l++) if (lvOpen(u.id, s.k, l) && lvStars(u.id, s.k, l) < 2) { cand.push({ s, l }); break; } });
   cand.sort((a, b) => a.l - b.l || rnd(3) - 1);
-  cand.slice(0, 2).forEach(c => steps.push({ name: `${u.name} · ${c.s.ic} ${c.s.n} cấp ${c.l + 1}`, run: next => startLevel(u, c.s, c.l, next) }));
+  cand.slice(0, 1).forEach(c => steps.push({ name: `${u.name} · ${c.s.ic} ${c.s.n} cấp ${c.l + 1}`, run: next => startLevel(u, c.s, c.l, next) }));
   if (!cand.length && testOpen(u.id) && !unitDone(u.id)) steps.push({ name: `🏆 Kiểm tra ${u.name}`, run: next => { const qs = buildTest(u); go(gameRound, null, 0, next, `Kiểm tra ${u.name}`, false, null, { qs, track: u.id + ':test', onScore: pct => { const st2 = pct >= .95 ? 3 : pct >= .8 ? 2 : pct >= .5 ? 1 : 0; if (st2 > (S.ut[u.id] || 0)) { S.ut[u.id] = st2; save(); } return st2 >= 2 ? `🏆 Bé đã học tốt <b>${u.name}</b>! Từ vựng mở rộng đã mở 🔓` : ''; } }); } });
   // âm & ghép vần: mỗi ngày một chút
   const phx = PHG.find(g => !g.ext && !phDone(g.id)) || SWB.find(b => !phDone(b.id)) || PHG.find(g => g.ext && phOpen(g.id, 0) && !phDone(g.id));
-  if (phx && S.set.dailyPh !== false && steps.length < 4) { const kind = PHG.includes(phx) ? 'g' : 'b', l = [0, 1, 2].find(l => phStars(phx.id, l) < 2); steps.push({ name: `🔤 ${phx.name} · cấp ${l + 1}`, run: next => phStart(phx, kind, l, next) }); }
+  if (phx && S.set.dailyPh !== false && steps.length < 5) { const kind = PHG.includes(phx) ? 'g' : 'b', l = [0, 1, 2].find(l => phStars(phx.id, l) < 2); steps.push({ name: `🔤 ${phx.name} · cấp ${l + 1}`, run: next => phStart(phx, kind, l, next) }); }
   // mở rộng: chỉ khi đã mở
   const tp = TOPICS.find(t => t.id === S.cur && topicOpen(t) && t.list.some(w => !S.w[w.id])) || TOPICS.find(t => topicOpen(t) && t.list.some(w => !S.w[w.id]));
-  if (tp && steps.length < 3) { const fresh = tp.list.filter(w => !S.w[w.id]).slice(0, 5); steps.push({ name: `🚀 Mở rộng: 5 từ ${tp.vi}`, run: next => { S.cur = tp.id; save(); go(learnNew, fresh, next); } }); }
+  if (tp && steps.length < 4) { const fresh = tp.list.filter(w => !S.w[w.id]).slice(0, 5); steps.push({ name: `🚀 Mở rộng: 5 từ ${tp.vi}`, run: next => { S.cur = tp.id; save(); go(learnNew, fresh, next); } }); }
   if (steps.length < 2) { const free = GZ.filter(g => !gzLock(g)), gz = free.length ? pick(free) : GZ.find(g => g.id === 'memo'); steps.push({ name: `🎲 Sân chơi: ${gz.name}`, run: next => buildGame(gz).length ? playGame(gz, next) : go(gameRound, cyc(u.W, 8), 6, next, 'Trò chơi thưởng', true) }); }
   let i = 0;
   const run = () => { if (SESSION !== sess) return; if (i >= steps.length) { SESSION = null; return go(dayDone, t0); } const st2 = steps[i++]; sess.i = i; st2.run(run); };
   const sess = { i: 0, n: steps.length };
   Sfx.musicOff();
   $app.innerHTML = topBar('Hôm nay học gì?', `Đang ôn ${u.name} · ${u.sub}`) + talk(`Hôm nay có <b>${steps.length} phần</b>. Sẵn sàng chưa?`, 'happy') +
-    `<div class="panel">${steps.map((s, k) => `<div class="setrow"><span>${['①', '②', '③', '④'][k]} ${s.name}</span></div>`).join('')}</div>
+    `<div class="panel">${steps.map((s, k) => `<div class="setrow"><span>${'①②③④⑤'[k]} ${s.name}</span></div>`).join('')}</div>
      <button class="btn" style="--c:var(--coral);--d:var(--coral-d)" data-a="go">Bắt đầu thôi! 🚀</button>`;
   sayVi(`Hôm nay mình làm ${steps.length} phần nhé. Sẵn sàng chưa?`);
   on('go', () => { SESSION = sess; run(); });
+}
+const spellable = w => w && hasPic(w) && /^[a-z]+( [a-z]+)?$/i.test(w.en) && w.en.length <= 12 && w.t.id !== 'sight';
+function reviewQs(){
+  const t = today(), pool = playPool(); if (pool.length < 4) return [];
+  const items = [];
+  Object.values(BYID).forEach(w => { if (!S.w[w.id] || !hasPic(w) || !activeWord(w) || w.t.id === 'phon') return;
+    ['L', 'R', 'S'].forEach(sk => { const r = skRec(w.id, sk); if (!r || r.d <= t) items.push({ w, sk, p: (r ? r.b : -1) + (S.w[w.id].b >= 3 ? 0 : -.5) + Math.random() * .6 }); }); });
+  items.sort((a, b) => a.p - b.p);
+  const per = { L: 0, R: 0, S: 0 }, out = [], usedW = new Set();
+  for (const it of items) { if (out.length >= 9) break; if (per[it.sk] >= 3 || usedW.has(it.w.id + it.sk)) continue; per[it.sk]++; usedW.add(it.w.id + it.sk);
+    const g = it.sk === 'L' ? pick(['balloon', 'tf']) : it.sk === 'R' ? pick(['mole', 'pickword']) : 'say';
+    out.push({ g, w: it.w, pool }); }
+  return shuffle(out);
+}
+function spellingQs(u){
+  const t = today(), uw = u.W.filter(spellable), cand = [];
+  const pri = w => { const r = skRec(w.id, 'W'); return r ? (r.d <= t ? r.b : 10 + r.b) : -1; };
+  uw.forEach(w => cand.push(w));
+  Object.values(BYID).forEach(w => { if (S.w[w.id] && spellable(w) && activeWord(w) && !uw.includes(w) && w.t.id !== 'phon') { const r = skRec(w.id, 'W'); if (!r || r.d <= t) cand.push(w); } });
+  const ws = cand.sort((a, b) => pri(a) - pri(b) || Math.random() - .5).filter(w => pri(w) < 10).slice(0, 4);
+  if (ws.length < 3) cand.forEach(w => { if (ws.length < 3 && !ws.includes(w)) ws.push(w); });
+  const out = [];
+  ws.forEach(w => { const r = skRec(w.id, 'W'), b = r ? r.b : -1;
+    if (b < 1) { out.push({ g: 'chunks', w }); out.push({ g: 'fill', w }); }
+    else if (b < 3) out.push({ g: 'lcw', w });
+    else out.push({ g: 'spell', w }); });
+  return out;
 }
 function pickBonus(pool, fresh){
   const out = fresh.slice();
@@ -2202,7 +2261,7 @@ function dayDone(){
   Sfx.tada(); confetti(140);
   $app.innerHTML = topBar('Xong bài hôm nay!', '') + talk('Hoàn thành rồi! Bé chăm quá, mai mình học tiếp nhé! 🎉', 'happy') +
     `<div class="stage res"><div class="sticker">🏆</div><h2>Bé đã học xong hôm nay!</h2>
-     <div class="big">🔥 Chuỗi ${S.streak.n} ngày · ⭐ ${S.stars} sao · 📚 ${totalKnown()} từ đã thuộc</div>
+     <div class="big">🔥 Chuỗi ${S.streak.n} ngày · ⭐ ${S.stars} sao · 📚 ${totalKnown()} từ đã thuộc · 🧠 ${Object.keys(S.m || {}).filter(mastered).length} từ thành thạo cả 4 kỹ năng</div>
      <button class="btn" style="--c:var(--mint);--d:var(--mint-d)" data-a="h">Về trang chính</button></div>`;
   sayVi('Hoàn thành rồi! Bé chăm quá, mai mình học tiếp nhé!');
   on('h', () => go(home));
@@ -2364,14 +2423,15 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     if (g === 'spell' && (w.en.length > 11 || /[^a-z ]/i.test(w.en))) g = 'balloon';
     qs.push({ g, w, pool: words.length >= 4 ? words : null });
   }
-  let i = 0, okN = 0, got = 0, hintQ = 0;
+  let i = 0, okN = 0, got = 0, hintQ = 0, qT0 = 0;
   let busy = false;
-  function next(){ busy = false; HINT.n = 0; QSHOW = null; QLOG = i < qs.length && LISTEN_G.has(qs[i].g) ? [] : null; QWORD = i < qs.length ? (qs[i].w || null) : null; if (i >= qs.length) { if (opt.track) trackRes(opt.track, okN, qs.length); const extra = opt.onScore ? opt.onScore(okN / qs.length) : ''; return go(roundEnd, okN, qs.length, title || 'Xong rồi!', done, extra, hintQ); } const q = qs[i];
+  function next(){ busy = false; HINT.n = 0; qT0 = performance.now(); QSHOW = null; QLOG = i < qs.length && LISTEN_G.has(qs[i].g) ? [] : null; QWORD = i < qs.length ? (qs[i].w || null) : null; if (i >= qs.length) { if (opt.track) trackRes(opt.track, okN, qs.length); const extra = opt.onScore ? opt.onScore(okN / qs.length) : ''; return go(roundEnd, okN, qs.length, title || 'Xong rồi!', done, extra, hintQ); } const q = qs[i];
     if (ENG[q.g]) ENG[q.g](q, res); else UENG[q.g](q, res, { head, done: res }); }
   function res(ok, ids){
     if (busy || !qs[i]) return; busy = true; const hadT = !!$app.querySelector('.tscript'); if (!ok && !hadT) { freezeT(); showTranscript(); } const showT = !ok && !!$app.querySelector('.tscript'); QLOG = null;
     $app.querySelectorAll('.stage button, .bank button').forEach(x => { if (!x.classList.contains('say')) x.disabled = true; });
-    const hinted = HINT.n > 0; if (hinted) { (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok, { hint: true })); ok = false; hintQ++; }
+    const hinted = HINT.n > 0, q0 = qs[i], skk = SKILL_OF[q0.g], idl = ids || (q0.w ? [q0.w.id] : []);
+    if (skk) { const ms = idl.length === 1 && !SK_NOTIME.has(q0.g) ? performance.now() - qT0 : null; idl.forEach(id => recSkill(id, skk, ok, ms, hinted)); } if (hinted) { (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok, { hint: true })); ok = false; hintQ++; }
     else (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok));
     if (hinted) { mochi(pick(['Lần sau bé thử tự làm trước nhé!', 'Từ này bé chưa chắc, mình sẽ ôn lại nha!', 'Gần đúng rồi! Lần sau thử không cần gợi ý nhé!']), 'oops'); }
     else if (ok) { okN++; got++; S.stars++; save(); mochi(pick(PRAISE_VI), 'happy'); later(() => speak(pick(PRAISE_EN), { queue: true }), 300); }
@@ -3116,6 +3176,33 @@ UENG.trace = (q, cb, ctx) => {
     const cov = pts.length ? hit / pts.length : 1;
     if (cov >= .6) { fin = true; Sfx.good(); confetti(30); speak(w.en); cb(tries === 0, [w.id]); }
     else { tries++; Sfx.boing(); mochi(`Bé tô được ${Math.round(cov * 100)}% rồi. <b>Tô thêm</b> chỗ còn trống nhé!`, 'oops'); }
+  });
+};
+/* ✍️ Cấu tạo từ: tách khối chữ – nghe đánh vần – ghép lại */
+const CHUNK_RE = /tch|igh|ck|ll|ss|ff|zz|ai|ay|oa|ow|ie|ee|ea|or|ng|oo|ch|sh|th|wh|ph|qu|ou|oi|ue|er|ar|ir|ur|aw|[a-z]/g;
+const VOWC = new Set(['a', 'e', 'i', 'o', 'u', 'y', 'ai', 'ay', 'oa', 'ow', 'ie', 'ee', 'ea', 'or', 'oo', 'ou', 'oi', 'ue', 'er', 'ar', 'ir', 'ur', 'aw', 'igh']);
+const wordChunks = en => { const out = []; en.toLowerCase().split(' ').forEach((p, k) => { if (k) out.push(' '); out.push(...(p.match(CHUNK_RE) || [])); }); return out; };
+const spellOut = en => en.replace(/ /g, '').toUpperCase().split('').join(', ');
+UENG.chunks = (q, cb, ctx) => {
+  const w = q.w, ch = wordChunks(w.en), nL = w.en.replace(/ /g, '').length, nC = ch.filter(c => c !== ' ').length;
+  $app.innerHTML = ctx.head(`🔍 <b>Cấu tạo từ</b>: từ này có <b>${nL} chữ cái</b>${nC < nL ? `, ghép từ <b>${nC} khối</b>` : ''}. Chạm từng khối để nghe nhé!`) +
+    `<div class="stage"><div class="bigpic" style="min-height:84px">${pic(w)}</div><div class="vi">${esc(w.vi)}</div>
+     <div class="chunks" id="ck">${ch.map((c, k) => c === ' ' ? '<span class="cgap"></span>' : `<button class="chk ${(c === 'y' ? k > 0 && ch[k - 1] !== ' ' : VOWC.has(c)) ? 'v' : 'c'}" data-k="${k}">${esc(c)}</button>`).join('')}</div>
+     <p class="note">Khối <b class="vtag">màu hồng</b> là nguyên âm – chỗ hay viết sai, bé nhìn kỹ nhé!</p>
+     <div class="row2"><button class="say sm" data-a="w">🔊 Nghe từ</button><button class="say sm" data-a="spl" style="background:var(--mint);box-shadow:0 4px 0 var(--mint-d)">🔤 Đánh vần</button></div>
+     <button class="btn" style="--c:var(--coral);--d:var(--coral-d)" data-a="go">Bé ghép thử ▶</button></div>`;
+  const ckEl = document.getElementById('ck');
+  const flashAll = () => { [...ckEl.querySelectorAll('.chk')].forEach((b, j) => later(() => { b.classList.add('lit'); later(() => b.classList.remove('lit'), 520); }, j * 560)); };
+  const say = () => speak(w.en, { rate: .75 }), sp = () => { speak(spellOut(w.en), { rate: .7 }); flashAll(); later(() => speak(w.en, { queue: true, rate: .8 }), 60); };
+  say(); later(sp, 1300);
+  on('w', say); on('spl', sp);
+  ckEl.onclick = e => { const b = e.target.closest('.chk'); if (!b) return; b.classList.add('lit'); later(() => b.classList.remove('lit'), 600); speak(b.textContent.toUpperCase().split('').join(', '), { rate: .75 }); };
+  on('go', () => {
+    const tgt = ch.filter(c => c !== ' '), vow = tgt.filter(c => VOWC.has(c));
+    const decoy = shuffle(['a', 'e', 'i', 'o', 'u', 'ee', 'ea', 'ai', 'oo', 'er', 'ar', 'or'].filter(x => !tgt.includes(x))).slice(0, vow.length ? 2 : 1);
+    tilesUI({ head: ctx.head, done: cb }, { talk: '🧩 Ghép các <b>khối chữ</b> thành từ đúng nhé!', top: `<div class="bigpic" style="min-height:80px">${pic(w)}</div><button class="say sm" data-a="re">🔊 Nghe</button>`,
+      target: tgt, given: tgt.map(() => false), extra: decoy, words: true, ids: [w.id], sayText: w.en });
+    on('re', say); later(say, 200);
   });
 };
 
@@ -4107,7 +4194,16 @@ function reportPanel(){
   else if (lag && lag.pass < 3) tip = `Ở <b>${cu.name}</b>, kỹ năng <b>${lag.s.ic} ${lag.s.n}</b> đang đi chậm nhất (${lag.pass}/3 cấp). Hôm nay cho bé làm phần này nhé.`;
   else tip = unitDone(cu.id) ? `Bé đã xong <b>${cu.name}</b>! Có thể chuyển sang Unit tiếp theo hoặc học từ vựng mở rộng.` : `Bé đã qua hết các cấp của <b>${cu.name}</b> – hãy làm bài <b>Kiểm tra</b> để mở phần mở rộng.`;
   const phN = PHG.filter(g => phDone(g.id)).length, swN = SWB.filter(b => phDone(b.id)).length;
-  return `<div class="panel"><h3>📈 Báo cáo 7 ngày</h3>
+  const mm = S.m || {}, seenIds = Object.keys(S.w).filter(id => BYID[id] && BYID[id].t.id !== 'sight' && BYID[id].t.id !== 'phon');
+  const skRow = k => { const tr = seenIds.filter(id => skRec(id, k)), fl = tr.filter(id => skFluent(id, k)), ts = tr.map(id => skRec(id, k).t).filter(x => x > 0), av = ts.length ? ts.reduce((a, b) => a + b, 0) / ts.length : 0;
+    const slow = tr.filter(id => { const r = skRec(id, k); return r.b >= 3 && !skFluent(id, k) && k !== 'S'; }).length;
+    return `<div class="skrow"><span>${SKN[k][0]} ${SKN[k][1]}</span><div class="skbar"><i style="width:${seenIds.length ? fl.length / seenIds.length * 100 : 0}%"></i></div><b>${fl.length}/${seenIds.length}</b><small>${k === 'S' ? '' : av ? (av / 1000).toFixed(1) + 's' : '–'}${slow ? ` · ${slow} từ còn chậm` : ''}</small></div>`; };
+  const nMast = seenIds.filter(mastered).length;
+  const masteryPanel = `<div class="panel"><h3>🧠 Thành thạo 4 kỹ năng</h3>
+    <div class="kpi"><div><b>${nMast}</b>từ thật sự ghi nhớ</div><div><b>${seenIds.length}</b>từ đã gặp</div><div><b>${Object.values(mm).filter(x => x.W).length}</b>từ đã luyện spelling</div></div>
+    ${['L', 'R', 'S', 'W'].map(skRow).join('')}
+    <p class="note" style="text-align:left">Một từ được tính <b>thật sự ghi nhớ</b> khi bé làm đúng nhiều lần ở cả 4 kỹ năng, không dùng gợi ý và trả lời <b>nhanh</b> (nghe ≤ 6 giây, đọc ≤ 5 giây, viết tuỳ độ dài từ). Đúng mà còn chậm thì app vẫn tiếp tục cho ôn. Cột thời gian là thời gian trả lời trung bình.</p></div>`;
+  return masteryPanel + `<div class="panel"><h3>📈 Báo cáo 7 ngày</h3>
     <div class="kpi"><div><b>${days.filter(d => S.log[d]).length}/7</b>ngày có học</div><div><b>${wk[0]}</b>câu đúng</div><div><b>${wk[1] ? Math.round(wk[0] / wk[1] * 100) + '%' : '–'}</b>tỉ lệ đúng</div></div>
     <div class="bars">${bars}</div><p class="note legend"><i style="background:var(--mint)"></i>đúng ≥80% <i style="background:var(--sun)"></i>60–80% <i style="background:var(--coral)"></i>&lt;60% · số = câu đã làm</p>
     <h3 style="font-size:1rem">Kỹ năng theo Unit <small class="note">(cấp đã qua · % đúng 2 tuần)</small></h3>
