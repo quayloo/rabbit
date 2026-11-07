@@ -2658,6 +2658,7 @@ function parents(){
   const weak = seen.filter(w => S.w[w.id].x > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].x - S.w[a.id].x).slice(0, 10);
   const unsure = seen.filter(w => S.w[w.id].h > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].h - S.w[a.id].h).slice(0, 10);
   const days = Object.keys(S.log).length;
+  if (!S.set.asr) S.set.asr = 'good';
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button aria-pressed="${S.set[k] === v}" data-a="set" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
   $app.innerHTML = topBar('Góc bố mẹ', 'Tiến độ và cài đặt') +
     `<div class="panel"><h3>📊 Tiến độ</h3>
@@ -2681,6 +2682,7 @@ function parents(){
       <div class="setrow"><span>Nhạc nền<small>Chỉ phát ở trang chính</small></span>${seg('music', [[true, 'Bật'], [false, 'Tắt']])}</div>
       <div class="setrow"><span>Mochi nói tiếng Việt<small>${VO.vi ? 'Máy có giọng tiếng Việt' : 'Máy chưa có giọng tiếng Việt'}</small></span>${seg('vi', [[true, 'Bật'], [false, 'Tắt']])}</div>
       <div class="setrow"><span>🎤 Chấm phát âm bằng micro<small>${!SRC ? 'Trình duyệt này chưa hỗ trợ – hãy mở bằng Chrome' : micState === 'frame' ? 'Link Claude không cho dùng micro – mở file app riêng bằng Chrome để bé được chấm điểm' : micState === 'blocked' ? 'Micro đang bị chặn – bấm Thử micro để cho phép lại' : 'Bé bấm 🎤 rồi nói, Mochi chấm điểm'}</small></span>${seg('mic', [[true, 'Bật'], [false, 'Tắt']])}</div>
+      ${MOBILE && CAN_REC ? `<div class="setrow"><span>👂 Đôi tai Mochi trên điện thoại<small>"Chính xác hơn" nghe giọng trẻ em tốt hơn nhưng tải lần đầu lâu hơn (~75 MB). Đổi xong mở lại app.</small></span>${seg('asr', [['good', 'Chính xác hơn'], ['fast', 'Nhanh']])}</div>` : ''}
       <div class="seg"><button data-a="test">🔊 Nghe thử giọng</button><button data-a="mt">🎤 Thử micro</button></div><p class="note" id="mtm" style="text-align:left"></p></div>
     <div class="panel"><h3>💾 Sao lưu tiến độ của ${curKid().av} ${esc(curKid().name)}</h3><p class="note" style="text-align:left">Tiến độ lưu trên trình duyệt của máy này. Để chuyển sang máy khác (hoặc phòng khi xoá dữ liệu trình duyệt): bấm <b>Tạo mã</b>, sao chép mã gửi cho mình qua Zalo/ghi chú; sang máy mới dán mã vào ô dưới rồi bấm <b>Khôi phục</b>.</p>
       <div class="seg"><button data-a="bk">📤 Tạo mã sao lưu</button><button data-a="cp" hidden>📋 Sao chép</button></div>
@@ -4082,23 +4084,62 @@ function normSay(t){
 }
 function lev(a, b){ const m = a.length, n = b.length; if (!m || !n) return m + n; let p = [...Array(n + 1).keys()];
   for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[n]; }
-/* điểm 0–100: giống về chữ cái + số từ đúng; trả về thêm danh sách từ đã nghe đúng */
+/* ===== Chấm điểm thân thiện với giọng trẻ em =====
+   - so theo "khung phụ âm" (bỏ nguyên âm, gộp âm gần giống: c/k/q, ph/f, z/s…) nên bé nói hơi lệch nguyên âm vẫn được nhận
+   - chấp nhận từ đồng âm (two/to/too, four/for…), số nhiều / thiếu "s", viết tắt (it's = it is)
+   - từ nội dung (cat, rollerblade…) quan trọng hơn từ nhỏ (a, the, is…)
+   - gộp các phương án nghe được của Chrome: từ nào xuất hiện ở bất kỳ phương án nào cũng tính */
+const HOMO = { two: 'to', too: 'to', four: 'for', fore: 'for', eight: 'ate', eye: 'i', right: 'write', see: 'sea', bee: 'be', know: 'no', their: 'there', theyre: 'there', hear: 'here', wear: 'where', one: 'won', son: 'sun', meet: 'meat', tail: 'tale', pair: 'pear', flower: 'flour', red: 'read', blue: 'blew', knight: 'night', whole: 'hole', ant: 'aunt', yeah: 'yes', yep: 'yes', ya: 'you', u: 'you', okay: 'ok', mom: 'mum', mommy: 'mum', mummy: 'mum', daddy: 'dad', grey: 'gray', colour: 'color', yoyo: 'yo yo', teddy: 'teddy' };
+const FNW = new Set(['a', 'an', 'the', 'is', 'am', 'are', 'i', 'it', 'to', 'of', 'and', 'my', 'got', 'have', 'has', 'do', 'does', 'this', 'that', 'in', 'on', 'at', 'you', 'he', 'she', 'we', 'they', 'what', 'its', 'not', 'very', 'please']);
+const FILL = new Set(['uh', 'um', 'umm', 'er', 'ah', 'oh', 'hmm', 'mm', 'huh', 'eh']);
+const stemW = w => w.length > 3 && /[^s]s$/.test(w) ? w.replace(/(ies)$/, 'y').replace(/(es|s)$/, '') : w;
+function pkey(w){
+  w = (HOMO[w] || w).replace(/^kn/, 'n').replace(/^wr/, 'r').replace(/^wh/, 'w').replace(/ph/g, 'f').replace(/tch/g, 'ch').replace(/dge/g, 'j').replace(/ck/g, 'k').replace(/q/g, 'k')
+    .replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/x/g, 'ks').replace(/z/g, 's').replace(/(?!^)gh/g, '').replace(/th/g, 't').replace(/sh/g, 's').replace(/v/g, 'f').replace(/d/g, 't').replace(/b$/, 'p').replace(/g$/, 'k');
+  const f = w[0] || ''; return (/[aeiouy]/.test(f) ? 'a' : f) + w.slice(1).replace(/[aeiouyhw]/g, '').replace(/(.)\1+/g, '$1');
+}
+const vowk = w => w.replace(/[^aeiouy]/g, '');
+function wordMatch(t, h){
+  if (!t || !h) return 0;
+  if (t === h || (HOMO[t] || t) === (HOMO[h] || h) || stemW(t) === stemW(h)) return 1;
+  const L = Math.max(t.length, h.length), d = lev(t, h);
+  if ((L >= 4 && d <= 1) || (L >= 7 && d <= 2)) return .85;
+  const kt = pkey(stemW(t)), kh = pkey(stemW(h));
+  if (kt && kt === kh && L >= 5 && d <= 2 && lev(vowk(t), vowk(h)) <= 1) return .75;   // lệch nhẹ ở từ dài (tortoys ~ tortoise)
+  if (kt && kt === kh) return .5;                                                       // chỉ giống phụ âm: chưa đủ (rabbit ≠ robot, duck ≠ dog)
+  return 0;
+}
+/* điểm 0–100 và danh sách từ đã nghe đúng */
 function scoreSay(target, alts){
-  const T = normSay(target), tw = T.split(' ');
-  let best = { score: 0, heard: alts[0] ? alts[0].t : '', hit: [] };
-  alts.forEach(a => { const H = normSay(a.t), hw = H.split(' ');
-    const ch = T.replace(/ /g, ''), hh = H.replace(/ /g, '');
-    const charSim = 1 - lev(ch, hh) / Math.max(ch.length, hh.length, 1);
-    const hit = tw.map(w => hw.includes(w) || hw.some(h => h.length > 2 && lev(h, w) <= (w.length > 4 ? 1 : 0)));
-    const wordRec = hit.filter(Boolean).length / tw.length;
-    let sc = tw.length === 1 ? charSim * .85 : .55 * charSim + .45 * wordRec;
-    if (H === T || H.includes(T)) sc = 1;
-    sc = Math.round(Math.max(0, Math.min(1, sc)) * 100);
-    if (sc > best.score) best = { score: sc, heard: a.t, hit }; });
-  if (!best.hit.length) best.hit = tw.map(() => false);
+  const T = normSay(target), tw = T.split(' ').filter(Boolean);
+  const hyps = alts.map(a => ({ raw: a.t, w: normSay(a.t).split(' ').filter(w => w && !FILL.has(w)) })).filter(h => h.w.length);
+  if (!hyps.length) return { score: 0, heard: alts[0] ? alts[0].t : '', hit: tw.map(() => false) };
+  const wt = w => FNW.has(w) ? .4 : 1, tot = tw.reduce((a, w) => a + wt(w), 0);
+  const evalWords = hw => { // ghép từng từ mục tiêu với từ nghe được tốt nhất (không bắt buộc đúng thứ tự)
+    const used = new Set(); let sum = 0; const hit = tw.map(w => { let bi = -1, bv = 0; hw.forEach((h, j) => { if (used.has(j)) return; const v = wordMatch(w, h); if (v > bv) { bv = v; bi = j; } }); if (bi >= 0) used.add(bi); sum += bv * wt(w); return bv >= .7; });
+    return { rec: sum / tot, hit };
+  };
+  const skel = ws => ws.map(w => pkey(w)).join('');
+  let best = null;
+  const consider = (hw, heard, factor) => {
+    const joined = hw.concat(hw.slice(0, -1).map((w, j) => w + hw[j + 1]), hw.slice(0, -2).map((w, j) => w + hw[j + 1] + hw[j + 2])); // 'roller blade', 'roll a blade' ~ 'rollerblade'
+    const { rec, hit } = evalWords(joined), ks = skel(tw), kh = skel(hw);
+    const charSim = 1 - lev(ks, kh) / Math.max(ks.length, kh.length, 1);
+    const letSim = 1 - lev(tw.join(''), hw.join('')) / Math.max(tw.join('').length, hw.join('').length, 1);
+    let sc = tw.length === 1 ? Math.max(rec >= .7 ? .8 + .2 * rec : 0, letSim * .75) : .75 * rec + .25 * charSim;
+    const contentOk = tw.every((w, k) => FNW.has(w) || hit[k]);
+    if (tw.length > 1 && contentOk) sc = Math.max(sc, .8);
+    const cw = tw.map((w, k) => [w, hit[k]]).filter(([w]) => !FNW.has(w)), miss = cw.filter(x => !x[1]).length;
+    if (tw.length > 1 && cw.length && (cw.length <= 3 ? miss > 0 : miss / cw.length > .25)) sc = Math.min(sc, .55);   // thiếu/sai từ chính → chưa đạt
+    if (hw.join(' ') === T || (' ' + hw.join(' ') + ' ').includes(' ' + T + ' ')) sc = 1;
+    sc = Math.round(Math.max(0, Math.min(1, sc * factor)) * 100);
+    if (!best || sc > best.score) best = { score: sc, heard, hit };
+  };
+  hyps.forEach(h => consider(h.w, h.raw, 1));
+  if (hyps.length > 1) consider([...new Set(hyps.flatMap(h => h.w))], hyps[0].raw, .95);
   return best;
 }
-const PASS = 65;
+const PASS = 60;
 /* nghe 1 lần: trả về Promise {alts:[{t,c}], audio:Blob|null} hoặc reject(mã lỗi) */
 function listenOnce(maxMs = 6000, withRec = !MOBILE){
   return new Promise((resolve, reject) => {
@@ -4111,6 +4152,7 @@ function listenOnce(maxMs = 6000, withRec = !MOBILE){
       else out(null); };
     try {
       rec = new SRC(); rec.lang = S.set.accent === 'us' ? 'en-US' : 'en-GB'; rec.interimResults = false; rec.maxAlternatives = 5; rec.continuous = false;
+      try { if (window.SpeechRecognitionPhrase && listenOnce.hint) rec.phrases = [new SpeechRecognitionPhrase(listenOnce.hint, 5)]; } catch (e) {}
       rec.onresult = e => { const r = e.results[0]; for (let i = 0; i < r.length; i++) alts.push({ t: r[i].transcript, c: r[i].confidence }); };
       rec.onerror = e => finish(e.error === 'no-speech' ? (alts.length ? null : 'no-speech') : e.error || 'error');
       rec.onend = () => finish(alts.length ? null : 'no-speech');
@@ -4140,7 +4182,8 @@ function recordOnce(maxMs = 5000){
   });
 }
 /* ===== Điện thoại: thu âm 1 lần, Mochi tự nghe lại bản thu bằng bộ nghe Whisper chạy ngay trên máy ===== */
-const ASR_MODEL = 'Xenova/whisper-tiny.en';
+const ASR_MODELS = { fast: 'Xenova/whisper-tiny.en', good: 'Xenova/whisper-base.en' };
+const asrModel = () => ASR_MODELS[(S.set && S.set.asr) || 'good'] || ASR_MODELS.good;
 let asrP = null, asrFn = null, asrFail = false, asrPct = 0, asrOnProg = null;
 const useASR = () => MOBILE && CAN_REC && !asrFail;
 function loadASR(){
@@ -4150,10 +4193,10 @@ function loadASR(){
     asrP = import(new URL('vendor/transformers.min.js', location.href).href).then(async T => {
       T.env.allowLocalModels = false;
       try { T.env.backends.onnx.wasm.wasmPaths = new URL('vendor/', location.href).href; } catch (e) {}
-      const pipe = await T.pipeline('automatic-speech-recognition', ASR_MODEL, { dtype: 'q8', device: 'wasm',
+      const pipe = await T.pipeline('automatic-speech-recognition', asrModel(), { dtype: 'q8', device: 'wasm',
         progress_callback: x => { if (x && x.file && x.total) { files[x.file] = [x.loaded || 0, x.total]; const v = Object.values(files); asrPct = Math.round(100 * v.reduce((a, b) => a + b[0], 0) / Math.max(1, v.reduce((a, b) => a + b[1], 0))); asrOnProg && asrOnProg(asrPct); } } });
       asrPct = 100; asrOnProg && asrOnProg(100);
-      asrFn = async f32 => { const o = await pipe(f32); return String((o && o.text) || '').trim(); };
+      asrFn = async f32 => { const pad = new Float32Array(6400), x = new Float32Array(f32.length + 12800); x.set(pad, 0); x.set(f32, 6400); const o = await pipe(x); return String((o && o.text) || '').replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').trim(); };
       return asrFn;
     }).catch(e => { asrP = null; asrFail = true; throw e; });
   }
@@ -4195,6 +4238,7 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
      <button class="mic" data-a="mic" id="micb"><span class="mi">🎤</span><span class="ml">Bấm rồi nói</span></button><div class="asrst" id="asrst" hidden></div>
      <div class="row2" id="after" hidden><button class="btn sm2" style="--c:var(--sky);--d:var(--sky-d)" data-a="model">🔊 Mochi đọc</button><button class="btn sm2" style="--c:var(--coral);--d:var(--coral-d)" data-a="rec" hidden>🎙️ Thu giọng con</button><button class="btn sm2" style="--c:var(--lilac);--d:var(--lilac-d)" data-a="mine" hidden>🔁 Nghe lại</button></div>
      <button class="btn" style="--c:var(--mint);--d:var(--mint-d)" data-a="nx" hidden>Tiếp tục ➜</button>
+     <button class="linkb" data-a="okp" hidden>👂 Bé nói đúng mà – Mochi nghe nhầm (bố mẹ xác nhận)</button>
      <button class="linkb" data-a="manual">Không dùng micro, tự chấm</button></div>`;
   const micb = document.getElementById('micb');
   const showResult = r => {
@@ -4206,7 +4250,8 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
     document.getElementById('after').hidden = false;
     if (r.score >= PASS) { Sfx.good(); mochi(st === 3 ? 'Phát âm chuẩn quá! 🌟' : st === 2 ? 'Giỏi lắm! Gần chuẩn rồi!' : 'Được rồi! Nghe Mochi đọc để nói hay hơn nữa nhé!', 'happy');
       later(() => speak(speakTxt, { rate: .85 }), 500); micb.querySelector('.ml').textContent = 'Nói lại cho hay hơn'; $app.querySelector('[data-a="nx"]').hidden = false; }
-    else if (tries >= 3) { Sfx.bad(); mochi('Mình nghe Mochi đọc rồi luyện thêm lần sau nhé!', 'oops'); speak(speakTxt, { rate: .75 }); micb.hidden = true; $app.querySelector('[data-a="nx"]').hidden = false; }
+    if (r.score < PASS) { const op = $app.querySelector('[data-a="okp"]'); if (op) op.hidden = false; }
+    if (r.score >= PASS) {} else if (tries >= 3) { Sfx.bad(); mochi('Mình nghe Mochi đọc rồi luyện thêm lần sau nhé!', 'oops'); speak(speakTxt, { rate: .75 }); micb.hidden = true; $app.querySelector('[data-a="nx"]').hidden = false; }
     else { Sfx.boing(); mochi(`Nghe Mochi đọc rồi <b>nói lại</b> nhé! (còn ${3 - tries} lượt)`, 'oops'); speak(speakTxt, { rate: .75 }); micb.querySelector('.ml').textContent = 'Nói lại'; }
   };
   const asrst = document.getElementById('asrst');
@@ -4227,7 +4272,7 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
       mochi('Mochi chưa tải được đôi tai (cần mạng). Bé bấm 🔁 nghe lại giọng mình, rồi bấm 🎤 để Mochi chấm theo cách khác nhé!', 'oops'); }
   };
   on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
-    try { const r = await listenOnce(answer.split(' ').length > 3 ? 8000 : 5000); micb.classList.remove('on'); busy = false;
+    listenOnce.hint = answer; try { const r = await listenOnce(answer.split(' ').length > 3 ? 8000 : 5000); micb.classList.remove('on'); busy = false;
       if (r.audio) { if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(r.audio); $app.querySelector('[data-a="mine"]').hidden = false; }
       showResult(scoreSay(answer, r.alts)); }
     catch (err) { micb.classList.remove('on'); busy = false;
@@ -4243,6 +4288,7 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
       if (blob) { if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(blob); $app.querySelector('[data-a="mine"]').hidden = false; later(playMine, 200); mochi('Nghe giọng mình rồi so với Mochi đọc nhé! 👂'); } }
     catch (err) { b.classList.remove('recon'); b.textContent = '🎙️ Thu giọng con'; mochi(MIC_ERR[err] || 'Máy này chưa thu âm được.', 'oops'); } });
   on('nx', () => cb(!!best && best.score >= PASS, ids));
+  on('okp', b => { best = Object.assign(best || { heard: '', hit: [] }, { score: Math.max(PASS, best ? best.score : 0) }); b.hidden = true; Sfx.good(); mochi('Cảm ơn bố mẹ! Mochi sẽ nghe kỹ hơn nhé 🐰', 'happy'); micb.hidden = true; $app.querySelector('[data-a="nx"]').hidden = false; S.asrMiss = (S.asrMiss || 0) + 1; save(); });
   on('manual', () => selfCheckManual(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids));
 }
 function stopSpeak(){ try { TTS && speechSynthesis.cancel(); } catch (e) {} }
