@@ -184,6 +184,7 @@ button:focus-visible { outline: 3px solid var(--lilac); outline-offset: 2px; }
 .vtag { color: #e8507a; }
 .skchips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; } .skc { background: var(--page); border-radius: 12px; padding: 6px 8px; font-weight: 800; font-size: .85rem; display: flex; flex-direction: column; } .skc small { font-weight: 600; color: var(--soft); font-size: .72rem; } .skc.f { background: #dcf6ea; } .skc.m { background: #e6f0ff; } .skc.l { background: #fff1e0; }
 .skrow { display: grid; grid-template-columns: 74px 1fr auto; gap: 4px 8px; align-items: center; font-weight: 700; font-size: .9rem; margin: 6px 0; } .skrow small { grid-column: 2 / 4; color: var(--soft); font-weight: 600; font-size: .75rem; margin-top: -4px; } .skbar { height: 10px; width: 100%; min-width: 90px; display: block; background: var(--line); border-radius: 999px; overflow: hidden; } .skbar i { display: block; height: 100%; background: var(--mint); border-radius: 999px; }
+.azu { width: 100%; box-sizing: border-box; border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; font: 600 .85rem var(--display); margin: 6px 0; }
 .hintsum { font-weight: 700; color: #b8611a; background: #fff1e0; border-radius: 14px; padding: 8px 12px; font-size: .9rem; text-align: center; }
 .h2 { font-family: var(--display); font-weight: 800; font-size: 1.1rem; margin: 4px 0 -4px; color: var(--soft); }
 
@@ -2682,6 +2683,9 @@ function parents(){
       <div class="setrow"><span>Nhạc nền<small>Chỉ phát ở trang chính</small></span>${seg('music', [[true, 'Bật'], [false, 'Tắt']])}</div>
       <div class="setrow"><span>Mochi nói tiếng Việt<small>${VO.vi ? 'Máy có giọng tiếng Việt' : 'Máy chưa có giọng tiếng Việt'}</small></span>${seg('vi', [[true, 'Bật'], [false, 'Tắt']])}</div>
       <div class="setrow"><span>🎤 Chấm phát âm bằng micro<small>${!SRC ? 'Trình duyệt này chưa hỗ trợ – hãy mở bằng Chrome' : micState === 'frame' ? 'Link Claude không cho dùng micro – mở file app riêng bằng Chrome để bé được chấm điểm' : micState === 'blocked' ? 'Micro đang bị chặn – bấm Thử micro để cho phép lại' : 'Bé bấm 🎤 rồi nói, Mochi chấm điểm'}</small></span>${seg('mic', [[true, 'Bật'], [false, 'Tắt']])}</div>
+      <div class="setrow" style="flex-wrap:wrap"><span>🎯 Đôi tai Azure (chấm phát âm chuyên dụng)<small>${S.set.azureUrl ? (azFail >= 2 ? '⚠️ Đang lỗi kết nối – Mochi tạm dùng đôi tai trên máy' : '✅ Đang bật – cần mạng') : 'Dán địa chỉ Worker của bố mẹ để bật. Không có mạng thì Mochi tự dùng đôi tai trên máy.'}</small></span>
+        <input id="azu" class="azu" type="url" placeholder="https://mochi-ears.….workers.dev" value="${esc(S.set.azureUrl || '')}" aria-label="Địa chỉ Worker Azure">
+        <div class="seg"><button data-a="azs">Lưu</button><button data-a="azt">Thử kết nối</button>${S.set.azureUrl ? '<button data-a="azx">Tắt</button>' : ''}</div><p class="note" id="azm" style="text-align:left;margin:0"></p></div>
       ${MOBILE && CAN_REC ? `<div class="setrow"><span>👂 Đôi tai Mochi trên điện thoại<small>"Chính xác hơn" nghe giọng trẻ em tốt hơn nhưng tải lần đầu lâu hơn (~75 MB). Đổi xong mở lại app.</small></span>${seg('asr', [['good', 'Chính xác hơn'], ['fast', 'Nhanh']])}</div>` : ''}
       <div class="seg"><button data-a="test">🔊 Nghe thử giọng</button><button data-a="mt">🎤 Thử micro</button></div><p class="note" id="mtm" style="text-align:left"></p></div>
     <div class="panel"><h3>💾 Sao lưu tiến độ của ${curKid().av} ${esc(curKid().name)}</h3><p class="note" style="text-align:left">Tiến độ lưu trên trình duyệt của máy này. Để chuyển sang máy khác (hoặc phòng khi xoá dữ liệu trình duyệt): bấm <b>Tạo mã</b>, sao chép mã gửi cho mình qua Zalo/ghi chú; sang máy mới dán mã vào ô dưới rồi bấm <b>Khôi phục</b>.</p>
@@ -2697,6 +2701,13 @@ function parents(){
   on('rs', b => { const d = readBackup(bkt.value); if (!d) { bkm.textContent = '❌ Mã không đúng. Hãy dán lại toàn bộ mã (bắt đầu bằng BOE1:).'; return; }
     if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = 'Bấm lần nữa để thay tiến độ hiện tại'; bkm.textContent = `Mã hợp lệ: ${Object.keys(d.w || {}).length} từ, ⭐ ${d.stars || 0}. Tiến độ hiện tại trên máy này sẽ bị thay thế.`; return; }
     try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} load(); S.ph = S.ph || {}; Sfx.win && Sfx.win(); go(parents); later(() => mochi('Đã khôi phục tiến độ của bé! 🎉', 'happy'), 100); });
+  on('azs', () => { const v = document.getElementById('azu').value.trim(); if (v && !/^https:\/\/[^ ]+$/.test(v)) { document.getElementById('azm').textContent = 'Địa chỉ phải bắt đầu bằng https://'; return; } S.set.azureUrl = v || null; azFail = 0; save(); go(parents); });
+  on('azx', () => { S.set.azureUrl = null; save(); go(parents); });
+  on('azt', async () => { const m = document.getElementById('azm'), v = document.getElementById('azu').value.trim(); if (!v) { m.textContent = 'Dán địa chỉ Worker trước nhé.'; return; }
+    const old = S.set.azureUrl; S.set.azureUrl = v; m.textContent = '⏳ Đang thử…';
+    try { const r = await azureAssess(new Float32Array(16000), 'hello'); azFail = 0; m.textContent = '✅ Kết nối được với Azure' + (r.nomatch ? ' (bản thử là khoảng lặng nên không có chữ – bình thường).' : '.') + ' Bấm Lưu để bật.'; }
+    catch (e) { m.textContent = '❌ Chưa kết nối được: ' + String(e && e.message || e) + '. Kiểm tra lại địa chỉ, biến KEY/REGION/ALLOWED trong Worker.'; }
+    S.set.azureUrl = old; });
   on('set', b => { const k = b.dataset.k; let v = b.dataset.v; v = v === 'true' ? true : v === 'false' ? false : isNaN(+v) ? v : +v; S.set[k] = v; save(); if (k === 'music' && !v) Sfx.musicOff(); go(parents); });
   on('test', () => speak('Hello! I am Mochi. Let us learn English together.'));
   on('mt', async b => { const m = document.getElementById('mtm'); if (micState === 'frame') { m.innerHTML = '🔒 App đang mở trong link Claude – khung này <b>không cho phép micro</b> nên Chrome không hỏi quyền. Bài Nói sẽ để bé tự chấm. Muốn Mochi chấm phát âm, hãy tải file app riêng và mở bằng Chrome.'; return; } if (!SRC) { m.textContent = 'Trình duyệt này không có nhận giọng nói. Hãy mở app bằng Chrome trên máy tính hoặc Android.'; return; }
@@ -4261,6 +4272,39 @@ function verdict(lt, lf, sw){
   else if (beat > 1.2) sc = Math.min(95, sc + 5);
   return { score: sc, gap, beat };
 }
+/* ===== Đôi tai Azure: chấm phát âm chuyên dụng (như các app luyện nói) qua Worker trung gian ===== */
+let azFail = 0;
+const azureOn = () => !!(S.set && S.set.azureUrl) && CAN_REC && navigator.onLine !== false && azFail < 2;
+function toWav(f32){
+  const n = f32.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, f32[i])); v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true); }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+async function azureAssess(f32, ref){
+  if (window.__mockAzure) return window.__mockAzure(ref);
+  const base = String(S.set.azureUrl).replace(/\/+$/, ''), lang = S.set.accent === 'us' ? 'en-US' : 'en-GB';
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000);
+  try {
+    const r = await fetch(`${base}/assess?lang=${lang}&text=${encodeURIComponent(ref)}`, { method: 'POST', body: toWav(f32), signal: ctl.signal });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error('http ' + r.status + ' ' + (j.error || ''));
+    return parseAzure(j, ref);
+  } finally { clearTimeout(tm); }
+}
+function parseAzure(j, ref){
+  if (j.RecognitionStatus && j.RecognitionStatus !== 'Success') return { score: 0, heard: '', hit: ref.split(/\s+/).map(() => false), nomatch: true };
+  const nb = (j.NBest || [])[0] || {}, pa = nb.PronunciationAssessment || nb;
+  const acc = pa.AccuracyScore, comp = pa.CompletenessScore, pron = pa.PronScore != null ? pa.PronScore : acc;
+  const words = (nb.Words || []).map(x => ({ w: String(x.Word || '').toLowerCase(), acc: (x.PronunciationAssessment || x).AccuracyScore, err: (x.PronunciationAssessment || x).ErrorType || 'None' }));
+  const tw = ref.split(/\s+/), clean = t => t.toLowerCase().replace(/[^a-z']/g, '');
+  let k = 0; const hit = tw.map(t => { const c = clean(t); const i = words.findIndex((x, j) => j >= k && x.w.replace(/[^a-z']/g, '') === c); if (i < 0) return false; k = i + 1; return words[i].err === 'None' && (words[i].acc == null || words[i].acc >= 60); });
+  // điểm: dựa vào độ chuẩn phát âm, nhưng thiếu từ (độ đầy đủ thấp) thì hạ điểm
+  let score = Math.round(pron != null ? pron : 0);
+  if (comp != null && comp < 70) score = Math.min(score, Math.round(comp));
+  return { score: Math.max(0, Math.min(100, score)), heard: nb.Display || j.DisplayText || '', hit, az: { acc, comp, flu: pa.FluencyScore } };
+}
 /* thu 1 câu: tự dừng khi bé nói xong (im lặng ~1 giây) */
 function recordUtter(maxMs = 7000){
   return new Promise((resolve, reject) => {
@@ -4308,7 +4352,7 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
   };
   const asrst = document.getElementById('asrst');
   const showLoad = pct => { if (!document.body.contains(asrst)) return; asrst.hidden = pct >= 100; asrst.innerHTML = `⏳ Mochi đang chuẩn bị đôi tai (chỉ lần đầu, cần mạng)… <b>${pct}%</b><i style="width:${pct}%"></i>`; };
-  if (useASR() && !asrFn) { asrOnProg = showLoad; showLoad(asrPct); loadASR().then(() => { asrst.hidden = true; }).catch(() => { asrst.hidden = true; const b = $app.querySelector('[data-a="rec"]'); if (b && CAN_REC) b.hidden = false; }); }
+  if (useASR() && !asrFn && !azureOn()) { asrOnProg = showLoad; showLoad(asrPct); loadASR().then(() => { asrst.hidden = true; }).catch(() => { asrst.hidden = true; const b = $app.querySelector('[data-a="rec"]'); if (b && CAN_REC) b.hidden = false; }); }
   const asrTurn = async () => {
     busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe… nói xong bấm dừng'; Sfx.tap();
     let rec;
@@ -4326,7 +4370,22 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
     catch (e) { micb.disabled = false; busy = false; asrFail = true; document.getElementById('after').hidden = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói';
       mochi('Mochi chưa tải được đôi tai (cần mạng). Bé bấm 🔁 nghe lại giọng mình, rồi bấm 🎤 để Mochi chấm theo cách khác nhé!', 'oops'); }
   };
-  on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
+  const azTurn = async () => {
+    busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe… nói xong bấm dừng'; Sfx.tap();
+    let rec;
+    try { rec = await recordUtter(answer.split(' ').length > 3 ? 9000 : 6000); }
+    catch (err) { micb.classList.remove('on'); busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; micState = 'blocked'; mochi((MIC_ERR[err] || 'Máy này chưa thu âm được.') + ` <small>(mã: ${esc(String(err))})</small>`, 'oops'); return; }
+    micb.classList.remove('on');
+    if (!rec.blob || !rec.spoke) { busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; mochi('Mochi chưa nghe thấy gì. Bé nói <b>to và rõ</b> hơn nhé!', 'oops'); return; }
+    if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(rec.blob); $app.querySelector('[data-a="mine"]').hidden = false;
+    micb.querySelector('.ml').textContent = 'Mochi đang chấm…'; micb.disabled = true;
+    try { const r = await azureAssess(await blobTo16k(rec.blob), answer); azFail = 0; micb.disabled = false; busy = false; if (!document.body.contains(micb)) return;
+      if (r.nomatch) { micb.querySelector('.ml').textContent = 'Bấm rồi nói'; mochi('Mochi chưa nghe rõ. Bé nói <b>to và rõ</b> hơn nhé!', 'oops'); return; }
+      showResult(r); }
+    catch (e) { azFail++; micb.disabled = false; busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; console.warn('azure', e);
+      mochi('Đôi tai Azure đang lỗi kết nối, bé bấm 🎤 nói lại nhé – Mochi sẽ dùng đôi tai trên máy.', 'oops'); azFail = 2; }
+  };
+  on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (azureOn()) return azTurn(); if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
     listenOnce.hint = answer; try { const r = await listenOnce(answer.split(' ').length > 3 ? 8000 : 5000); micb.classList.remove('on'); busy = false;
       if (r.audio) { if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(r.audio); $app.querySelector('[data-a="mine"]').hidden = false; }
       let res = scoreSay(answer, r.alts);
