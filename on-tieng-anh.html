@@ -1,4 +1,4 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob: https://*.workers.dev; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap"><style>.hk-btn{width:42px!important;height:42px!important;border-radius:50%!important;border:0!important;background:#fff!important;color:#2a2140!important;display:grid!important;place-items:center!important;padding:0!important;margin:0!important;box-shadow:0 4px 12px rgba(91,75,196,.13)!important;cursor:pointer;flex:none;touch-action:manipulation}
 .hk-btn:active{transform:scale(.95)}
 .hk-btn svg{width:22px;height:22px}
@@ -2659,7 +2659,7 @@ function parents(){
   const weak = seen.filter(w => S.w[w.id].x > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].x - S.w[a.id].x).slice(0, 10);
   const unsure = seen.filter(w => S.w[w.id].h > 0 && S.w[w.id].b < 3).sort((a, b) => S.w[b.id].h - S.w[a.id].h).slice(0, 10);
   const days = Object.keys(S.log).length;
-  if (!S.set.asr) S.set.asr = 'good';
+  if (!S.set.asr) S.set.asr = 'good'; if (S.set.judge == null) S.set.judge = true;
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button aria-pressed="${S.set[k] === v}" data-a="set" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
   $app.innerHTML = topBar('Góc bố mẹ', 'Tiến độ và cài đặt') +
     `<div class="panel"><h3>📊 Tiến độ</h3>
@@ -2686,7 +2686,8 @@ function parents(){
       <div class="setrow" style="flex-wrap:wrap"><span>🎯 Đôi tai Azure (chấm phát âm chuyên dụng)<small>${S.set.azureUrl ? (azFail >= 2 ? '⚠️ Đang lỗi kết nối – Mochi tạm dùng đôi tai trên máy' : '✅ Đang bật – cần mạng') : 'Dán địa chỉ Worker của bố mẹ để bật. Không có mạng thì Mochi tự dùng đôi tai trên máy.'}</small></span>
         <input id="azu" class="azu" type="url" placeholder="https://mochi-ears.….workers.dev" value="${esc(S.set.azureUrl || '')}" aria-label="Địa chỉ Worker Azure">
         <div class="seg"><button data-a="azs">Lưu</button><button data-a="azt">Thử kết nối</button>${S.set.azureUrl ? '<button data-a="azx">Tắt</button>' : ''}</div><p class="note" id="azm" style="text-align:left;margin:0"></p></div>
-      ${MOBILE && CAN_REC ? `<div class="setrow"><span>👂 Đôi tai Mochi trên điện thoại<small>"Chính xác hơn" nghe giọng trẻ em tốt hơn nhưng tải lần đầu lâu hơn (~75 MB). Đổi xong mở lại app.</small></span>${seg('asr', [['good', 'Chính xác hơn'], ['fast', 'Nhanh']])}</div>` : ''}
+      ${CAN_REC ? `<div class="setrow"><span>🎯 Máy chấm phát âm trên máy (mới)<small>So từng từ bé nói với các từ na ná (cat/cap, dog/duck), chạy ngay trên máy, giọng bé không gửi đi đâu. Tải 1 lần ~75 MB, mỗi tệp được kiểm tra mã an toàn.${asrFail ? ' ⚠️ Lần này chưa tải được – Mochi tạm dùng cách nghe cũ.' : ''}</small></span>${seg('judge', [[true, 'Bật'], [false, 'Tắt']])}</div>` : ''}
+      ${MOBILE && CAN_REC ? `<div class="setrow"><span>👂 Đôi tai dự phòng trên điện thoại<small>Dùng khi máy chấm mới tắt hoặc chưa tải được. "Chính xác hơn" nghe giọng trẻ em tốt hơn nhưng tải lần đầu lâu hơn (~75 MB). Đổi xong mở lại app.</small></span>${seg('asr', [['good', 'Chính xác hơn'], ['fast', 'Nhanh']])}</div>` : ''}
       <div class="seg"><button data-a="test">🔊 Nghe thử giọng</button><button data-a="mt">🎤 Thử micro</button></div><p class="note" id="mtm" style="text-align:left"></p></div>
     <div class="panel"><h3>💾 Sao lưu tiến độ của ${curKid().av} ${esc(curKid().name)}</h3><p class="note" style="text-align:left">Tiến độ lưu trên trình duyệt của máy này. Để chuyển sang máy khác (hoặc phòng khi xoá dữ liệu trình duyệt): bấm <b>Tạo mã</b>, sao chép mã gửi cho mình qua Zalo/ghi chú; sang máy mới dán mã vào ô dưới rồi bấm <b>Khôi phục</b>.</p>
       <div class="seg"><button data-a="bk">📤 Tạo mã sao lưu</button><button data-a="cp" hidden>📋 Sao chép</button></div>
@@ -4192,6 +4193,58 @@ function recordOnce(maxMs = 5000){
     }).catch(e => reject(e && e.name === 'NotAllowedError' ? 'not-allowed' : 'audio-capture'));
   });
 }
+/* ===== Nạp mô hình AN TOÀN =====
+   • Chỉ nạp từ thư mục models/ của chính app (không tải từ trang ngoài lúc bé dùng).
+   • Mỗi tệp phải có trong danh sách dưới đây và khớp đúng mã băm SHA-256 (đã kiểm tra với bản gốc
+     Hugging Face ở phiên bản cố định – xem models/MANIFEST.json). Lệch 1 byte → không dùng.
+   • Chỉ nhận tệp dữ liệu .onnx/.json (không có mã chạy được). */
+const MODEL_SHA = {"Xenova/whisper-tiny.en/config.json":"37a1073be00d19118c06557896c7c148598f4d8277edc0f5bc07c9f5554839f1","Xenova/whisper-tiny.en/generation_config.json":"132c95ba9db45f4498f2eab3fea7c1d6a174005010f8f6b7d20cfd5e9795996b","Xenova/whisper-tiny.en/preprocessor_config.json":"a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d","Xenova/whisper-tiny.en/tokenizer.json":"c6ee8f089220a5b1188f6426456772572671c6141ae007eecb83c6a8349f5deb","Xenova/whisper-tiny.en/tokenizer_config.json":"e082c1ad251541bf277967a703252cddd4bb37a71a43737e03d050c22ec08238","Xenova/whisper-tiny.en/onnx/decoder_model_merged_quantized.onnx":"dbb2e063b7fbc41d9803b9698f93ecb035c50cbb3fb87b56cb131e4a5eb99059","Xenova/whisper-tiny.en/onnx/encoder_model_quantized.onnx":"8cc3c6f8563d1b3fbd2c5af9f64c2bed8b020bc593c402d1ef53b9f08fbf1b90","Xenova/whisper-base.en/config.json":"5c390f2c6ba84ddeb7e362cd8b2123832911407850174e64d7081ccc36df2d64","Xenova/whisper-base.en/generation_config.json":"1e57ed56ad1bd7f08a49ece7fe7daada674573805a35f8bdbbe68380aab5b1ee","Xenova/whisper-base.en/preprocessor_config.json":"a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d","Xenova/whisper-base.en/tokenizer.json":"c6ee8f089220a5b1188f6426456772572671c6141ae007eecb83c6a8349f5deb","Xenova/whisper-base.en/tokenizer_config.json":"e082c1ad251541bf277967a703252cddd4bb37a71a43737e03d050c22ec08238","Xenova/whisper-base.en/onnx/decoder_model_merged_quantized.onnx":"a25afc5858a20aabb7652cb2d555996ebe10691a69bbdb423d5073d52f060325","Xenova/whisper-base.en/onnx/encoder_model_quantized.onnx":"d0d4e59e2842617b39787cece73d7e8f76f99b1697d3386c0e682eca2269f4a1"};
+const MODEL_BASE = new URL('models/', location.href).href, MODEL_CACHE = 'mochi-models-v1';
+let mdlOnProg = null; const mdlFiles = {};
+async function sha256hex(buf){ const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join(''); }
+async function readProg(r, rel){
+  const total = +r.headers.get('content-length') || 0; if (!r.body || !total) return r.arrayBuffer();
+  const rd = r.body.getReader(), out = new Uint8Array(total); let n = 0;
+  for (;;) { const { done, value } = await rd.read(); if (done) break; if (n + value.length > out.length) return null; out.set(value, n); n += value.length; mdlFiles[rel] = [n, total]; mdlOnProg && mdlOnProg(); }
+  return n === total ? out.buffer : out.slice(0, n).buffer;
+}
+async function verifiedFile(orig, url, rel, want){
+  if (!(window.crypto && crypto.subtle)) throw new Error('no-crypto');
+  let buf = null, cache = null;
+  try { cache = await caches.open(MODEL_CACHE); const hit = await cache.match(url); if (hit) { buf = await hit.arrayBuffer(); if (await sha256hex(buf) !== want) { buf = null; await cache.delete(url); } } } catch (e) { buf = null; }
+  if (!buf) {
+    const r = await orig(url, { cache: 'no-cache', credentials: 'omit' }); if (!r.ok) return new Response('', { status: r.status });
+    buf = await readProg(r, rel);
+    if (!buf || await sha256hex(buf) !== want) throw new Error('model-hash-mismatch: ' + rel);
+    try { cache && await cache.put(url, new Response(buf.slice(0), { headers: { 'content-type': 'application/octet-stream' } })); } catch (e) {}
+  }
+  mdlFiles[rel] = [buf.byteLength, buf.byteLength]; mdlOnProg && mdlOnProg();
+  return new Response(buf, { status: 200, headers: { 'content-type': /\.json$/.test(rel) ? 'application/json' : 'application/octet-stream', 'content-length': String(buf.byteLength) } });
+}
+function guardFetch(){
+  if (guardFetch.on) return; guardFetch.on = true;
+  const orig = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    const url = typeof input === 'string' ? input : input && input.url ? input.url : String(input);
+    if (!url.startsWith(MODEL_BASE)) return orig(input, init);
+    const rel = decodeURIComponent(url.slice(MODEL_BASE.length).split(/[?#]/)[0]), want = MODEL_SHA[rel];
+    if (!want || !/\.(onnx|json)$/.test(rel)) return Promise.resolve(new Response('', { status: 404 }));   // tệp lạ → coi như không có
+    return verifiedFile(orig, url, rel, want);
+  };
+  try { caches.delete('transformers-cache'); } catch (e) {}   // bỏ bộ nhớ đệm cũ (bản tải thẳng từ Hugging Face trước đây)
+}
+let tfP = null;
+mdlOnProg = () => { asrPct = mdlPct(asrModel()); asrOnProg && asrOnProg(asrPct); };
+function loadTF(){
+  if (!tfP) tfP = import(new URL('vendor/transformers.min.js', location.href).href).then(T => {
+    guardFetch();
+    T.env.allowRemoteModels = false; T.env.allowLocalModels = true; T.env.localModelPath = MODEL_BASE; T.env.useBrowserCache = false;
+    try { T.env.backends.onnx.wasm.wasmPaths = new URL('vendor/', location.href).href; } catch (e) {}
+    return T;
+  }).catch(e => { tfP = null; throw e; });
+  return tfP;
+}
+const mdlPct = pre => { const v = Object.entries(mdlFiles).filter(([k]) => k.startsWith(pre)).map(x => x[1]); return v.length ? Math.round(100 * v.reduce((a, b) => a + b[0], 0) / Math.max(1, v.reduce((a, b) => a + b[1], 0))) : 0; };
 /* ===== Điện thoại: thu âm 1 lần, Mochi tự nghe lại bản thu bằng bộ nghe Whisper chạy ngay trên máy ===== */
 const ASR_MODELS = { fast: 'Xenova/whisper-tiny.en', good: 'Xenova/whisper-base.en' };
 const asrModel = () => ASR_MODELS[(S.set && S.set.asr) || 'good'] || ASR_MODELS.good;
@@ -4200,12 +4253,9 @@ const useASR = () => MOBILE && CAN_REC && !asrFail;
 function loadASR(){
   if (asrFn) return Promise.resolve(asrFn);
   if (window.__mockASR) return Promise.resolve(asrFn = window.__mockASR);
-  if (!asrP) { const files = {};
-    asrP = import(new URL('vendor/transformers.min.js', location.href).href).then(async T => {
-      T.env.allowLocalModels = false;
-      try { T.env.backends.onnx.wasm.wasmPaths = new URL('vendor/', location.href).href; } catch (e) {}
-      const pipe = await T.pipeline('automatic-speech-recognition', asrModel(), { dtype: 'q8', device: 'wasm',
-        progress_callback: x => { if (x && x.file && x.total) { files[x.file] = [x.loaded || 0, x.total]; const v = Object.values(files); asrPct = Math.round(100 * v.reduce((a, b) => a + b[0], 0) / Math.max(1, v.reduce((a, b) => a + b[1], 0))); asrOnProg && asrOnProg(asrPct); } } });
+  if (!asrP) {
+    asrP = loadTF().then(async T => {
+            const id = asrModel(), pipe = await T.pipeline('automatic-speech-recognition', id, { dtype: 'q8', device: 'wasm' });
       asrPct = 100; asrOnProg && asrOnProg(100);
       asrPipe = pipe; asrT = T;
       asrFn = async f32 => { const pad = new Float32Array(6400), x = new Float32Array(f32.length + 12800); x.set(pad, 0); x.set(f32, 6400); const o = await pipe(x); return String((o && o.text) || '').replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').trim(); };
@@ -4263,6 +4313,85 @@ async function asrVerify(f32, target, freeText){
     for (const v of swapVariants(target)) sw.push(await lp(v));
     return verdict(lt, lf, sw);
   } catch (e) { console.warn('verify', e); return null; }
+}
+/* ===== Máy chấm Whisper: "đọc thử" câu mẫu và các câu na ná trên chính giọng bé =====
+   Với mỗi từ chính, Mochi thay bằng vài từ thật gần giống (cat→cap, hat, cut…) rồi xem
+   câu nào khớp với giọng bé nhất. Từ mẫu phải khớp hơn các từ na ná mới tính là đúng. */
+const wjFmt = t => { let x = String(t).replace(/[’`]/g, "'").replace(/\s+/g, ' ').trim().replace(/[.!?,;:]+$/, ''); x = x.replace(/\bi\b/g, 'I'); return x.charAt(0).toUpperCase() + x.slice(1); };
+function wjRivals(w, pool, n){
+  const lw = w.toLowerCase().replace(/[^a-z']/g, ''); if (!lw) return [];
+  const out = [];
+  for (const x of pool) { if (x === lw || Math.abs(x.length - lw.length) > 1 || HOMO[x] === lw || HOMO[lw] === x || stemW(x) === stemW(lw)) continue;
+    const d = lev(x, lw); if (d && d <= (lw.length <= 4 ? 1 : 2)) out.push([d + (x[0] === lw[0] ? 0 : .3), x]); }
+  return out.sort((a, b) => a[0] - b[0]).slice(0, n).map(x => x[1]);
+}
+async function wjFeat(f32, target, opt = {}){
+  const { model, tokenizer, processor } = asrPipe, T = asrT;
+  const pad = new Float32Array(6400), x = new Float32Array(f32.length + 12800); x.set(pad, 0); x.set(f32, 6400);
+  const feats = await processor(x);
+  const mi = await model._prepare_encoder_decoder_kwargs_for_generation({ inputs_tensor: feats.input_features, model_inputs: { input_features: feats.input_features }, model_input_name: 'input_features', generation_config: { guidance_scale: null } });
+  const enc = mi.encoder_outputs, tid = t => tokenizer.model.tokens_to_ids.get(t), EOT = tid('<|endoftext|>');
+  const I = a => new T.Tensor('int64', BigInt64Array.from(a.map(BigInt)), [1, a.length]);
+  const pre = [tid('<|startoftranscript|>'), tid('<|notimestamps|>')].filter(v => v != null);
+  const o0 = await model.forward({ encoder_outputs: enc, decoder_input_ids: I(pre) }), past0 = model.getPastKeyValues(o0, null);
+  const lsm = (L, pos, id) => { const V = L.dims[2], d = L.data, off = pos * V; let mx = -1e9; for (let v = 0; v < V; v++) if (d[off + v] > mx) mx = d[off + v]; let z = 0; for (let v = 0; v < V; v++) z += Math.exp(d[off + v] - mx); return d[off + id] - mx - Math.log(z); };
+  const argmax = (L, pos) => { const V = L.dims[2], d = L.data, off = pos * V; let bi = 0; for (let v = 1; v < V; v++) if (d[off + v] > d[off + bi]) bi = v; return bi; };
+  // Mochi tự nghe (không gợi ý câu mẫu): đọc lần lượt từng token
+  const fids = []; let cur = o0, past = past0, lf = 0;
+  for (let s = 0; s < 30; s++) { const pos = cur.logits.dims[1] - 1, bi = argmax(cur.logits, pos); if (bi === EOT || bi >= EOT) break; lf += lsm(cur.logits, pos, bi); fids.push(bi);
+    cur = await model.forward({ encoder_outputs: enc, decoder_input_ids: I([bi]), past_key_values: past }); past = model.getPastKeyValues(cur, past); }
+  const free = tokenizer.decode(fids, { skip_special_tokens: true }).replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').trim();
+  // độ khớp từng từ của một câu (đọc thử trên giọng bé)
+  const run = async words => {
+    const ids = [], own = []; words.forEach((w, k) => tokenizer.encode(' ' + w, { add_special_tokens: false }).forEach(v => { ids.push(v); own.push(k); }));
+    if (!ids.length) return { per: words.map(() => -20), tot: -20, n: 1 };
+    const o = await model.forward({ encoder_outputs: enc, decoder_input_ids: I(ids), past_key_values: past0 }), per = words.map(() => 0);
+    ids.forEach((id, k) => { per[own[k]] += k ? lsm(o.logits, k - 1, id) : lsm(o0.logits, o0.logits.dims[1] - 1, id); });
+    return { per, tot: per.reduce((a, b) => a + b, 0), n: ids.length };
+  };
+  const tw = wjFmt(target).split(' '), base = await run(tw);
+  const pool = opt.pool || wjPool(), words = [], isF = w => FNW.has(w.toLowerCase().replace(/[^a-z]/g, ''));
+  const content = tw.filter(w => !isF(w)).length, per = Math.max(3, Math.floor((opt.budget || 16) / Math.max(1, content)));
+  for (let k = 0; k < tw.length; k++) {
+    const f = isF(tw[k]), rs = [];
+    for (const r of f ? [] : wjRivals(tw[k], pool, per)) { const c = tw.slice(); c[k] = k === 0 ? r.charAt(0).toUpperCase() + r.slice(1) : r; rs.push([r, (await run(c)).tot]); }
+    words.push({ w: tw[k], lp: base.per[k], fn: f, rivals: rs });
+  }
+  return { lt: base.tot, nt: base.n, lf, nf: Math.max(1, fids.length), words, free };
+}
+/* Máy chấm Whisper: trả { score, heard, hit } */
+async function wjudge(f32, target){
+  if (window.__mockJudge) return window.__mockJudge(target);
+  await loadASR(); if (!asrPipe) throw new Error('no-asr');
+  const f = await wjFeat(f32, target), r = wjScore(f), fr = scoreSay(target, [{ t: f.free }]);
+  // Mochi tự nghe ra đúng câu → tin luôn
+  if (fr.score >= 90 && r.score < fr.score) return { score: fr.score, heard: f.free, hit: fr.hit, f };
+  return { score: r.score, heard: f.free, hit: target.split(/\s+/).map((w, k) => r.hit[k] !== false), f };
+}
+const useJudge = () => CAN_REC && S.set.judge !== false && !asrFail && !!(window.crypto && crypto.subtle);
+/* máy tính: Chrome nghe chữ (c) + máy chấm phát âm (j) */
+function judgeMix(c, j){
+  if (c.score >= 90 && j.score >= 45) return { score: Math.max(c.score, j.score), heard: c.heard, hit: c.hit };
+  return { score: j.score, heard: c.heard || j.heard, hit: j.hit };
+}
+function wjPool(){
+  if (wjPool.p) return wjPool.p; const s = new Set();
+  Object.values(BYID).forEach(w => String(w.en || '').toLowerCase().split(/[^a-z']+/).forEach(x => x.length > 1 && s.add(x)));
+  WJ_EXTRA.split(' ').forEach(x => s.add(x));
+  return (wjPool.p = [...s]);
+}
+const WJ_EXTRA = 'cap cut hot hut bat bad bag bug big pig pin pan pen ten hen den bed bet sit set sat ship sheep chip cheap fist fish feet fit seat sun son ran run rat red led lap map mat net nut not nod hop hope cop cup cake lake late light right white wide road load cold gold coat goat boat both bath path tree three free sea see she shoe two too do dog duck dock luck lock rock sock look book cook took good wood could ball bell bill wall tall doll dull cot kit kite cute tap top tip dip deep jam jug jog yes yet wet vet van fan fun gun gum mug hug rug bun ban';
+/* gộp đặc trưng → điểm 0–100 và từ đúng/sai */
+function wjScore(f, o = {}){
+  const M = o.m != null ? o.m : .5, G = o.g != null ? o.g : 2.5;
+  const gapN = (f.lt - f.lf) / Math.max(1, f.nt);   // câu mẫu khớp kém hơn cách tự nghe bao nhiêu (mỗi token)
+  const hit = f.words.map(w => { if (!w.rivals.length) return w.fn ? true : w.lp > -6; const best = Math.max(...w.rivals.map(r => r[1])); w.margin = (f.lt - best); return w.margin >= M; });
+  const wt = w => w.fn ? .4 : 1; let tot = 0, sum = 0;
+  f.words.forEach((w, k) => { tot += wt(w); sum += wt(w) * (hit[k] ? Math.min(1, .75 + .1 * (w.margin == null ? 2.5 : w.margin)) : Math.max(0, .45 + .1 * (w.margin || 0))); });
+  let score = Math.round(100 * sum / tot);
+  if (gapN < -G) score = Math.min(score, 40); else if (gapN < -G / 2) score = Math.min(score, 58);
+  if (f.words.some((w, k) => !w.fn && !hit[k])) score = Math.min(score, 55);
+  return { score: Math.max(0, Math.min(100, score)), hit, gapN };
 }
 /* lt: độ khớp câu đúng · lf: độ khớp cách Whisper tự nghe · sw: độ khớp các câu sai */
 function verdict(lt, lf, sw){
@@ -4352,7 +4481,8 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
   };
   const asrst = document.getElementById('asrst');
   const showLoad = pct => { if (!document.body.contains(asrst)) return; asrst.hidden = pct >= 100; asrst.innerHTML = `⏳ Mochi đang chuẩn bị đôi tai (chỉ lần đầu, cần mạng)… <b>${pct}%</b><i style="width:${pct}%"></i>`; };
-  if (useASR() && !asrFn && !azureOn()) { asrOnProg = showLoad; showLoad(asrPct); loadASR().then(() => { asrst.hidden = true; }).catch(() => { asrst.hidden = true; const b = $app.querySelector('[data-a="rec"]'); if (b && CAN_REC) b.hidden = false; }); }
+  const jdFirst = () => MOBILE && useJudge();   // điện thoại: máy chấm mới là chính; máy tính: Chrome nghe + máy chấm kiểm tra lại
+  if ((useJudge() || useASR()) && !asrFn && !azureOn()) { asrOnProg = showLoad; showLoad(asrPct); loadASR().then(() => { asrst.hidden = true; }).catch(() => { asrst.hidden = true; const b = $app.querySelector('[data-a="rec"]'); if (b && CAN_REC) b.hidden = false; }); }
   const asrTurn = async () => {
     busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe… nói xong bấm dừng'; Sfx.tap();
     let rec;
@@ -4370,6 +4500,21 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
     catch (e) { micb.disabled = false; busy = false; asrFail = true; document.getElementById('after').hidden = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói';
       mochi('Mochi chưa tải được đôi tai (cần mạng). Bé bấm 🔁 nghe lại giọng mình, rồi bấm 🎤 để Mochi chấm theo cách khác nhé!', 'oops'); }
   };
+  const judgeTurn = async () => {
+    busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe… nói xong bấm dừng'; Sfx.tap();
+    let rec;
+    try { rec = await recordUtter(answer.split(' ').length > 3 ? 9000 : 6000); }
+    catch (err) { micb.classList.remove('on'); busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; micState = 'blocked'; mochi((MIC_ERR[err] || 'Máy này chưa thu âm được.') + ` <small>(mã: ${esc(String(err))})</small>`, 'oops'); later(() => selfCheckManual(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids), 1800); return; }
+    micb.classList.remove('on');
+    if (!rec.blob || !rec.spoke) { busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; mochi('Mochi chưa nghe thấy gì. Bé nói <b>to và rõ</b> hơn nhé!', 'oops'); return; }
+    if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(rec.blob); $app.querySelector('[data-a="mine"]').hidden = false;
+    micb.querySelector('.ml').textContent = 'Mochi đang chấm…'; micb.disabled = true;
+    if (!asrFn) { asrOnProg = showLoad; showLoad(asrPct); }
+    try { const r = await wjudge(await blobTo16k(rec.blob), answer); micb.disabled = false; busy = false; if (asrst) asrst.hidden = true;
+      if (!document.body.contains(micb)) return; showResult(r); }
+    catch (e) { micb.disabled = false; busy = false; if (asrst) asrst.hidden = true; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; console.warn('judge', e);
+      mochi('Máy chấm mới chưa tải được (cần mạng). Bé bấm 🎤 nói lại nhé – Mochi sẽ nghe theo cách cũ.', 'oops'); }
+  };
   const azTurn = async () => {
     busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe… nói xong bấm dừng'; Sfx.tap();
     let rec;
@@ -4385,11 +4530,15 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
     catch (e) { azFail++; micb.disabled = false; busy = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói'; console.warn('azure', e);
       mochi('Đôi tai Azure đang lỗi kết nối, bé bấm 🎤 nói lại nhé – Mochi sẽ dùng đôi tai trên máy.', 'oops'); azFail = 2; }
   };
-  on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (azureOn()) return azTurn(); if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
+  on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (azureOn()) return azTurn(); if (jdFirst()) return judgeTurn(); if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
     listenOnce.hint = answer; try { const r = await listenOnce(answer.split(' ').length > 3 ? 8000 : 5000); micb.classList.remove('on'); busy = false;
       if (r.audio) { if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(r.audio); $app.querySelector('[data-a="mine"]').hidden = false; }
       let res = scoreSay(answer, r.alts);
-      if (res.score < PASS && r.audio && S.set.ears2 !== false && !asrFail) {   // Chrome nghe chưa ra → nhờ Whisper nghe kỹ lại bản ghi
+      if (r.audio && useJudge()) {   // máy chấm mới nghe lại bản ghi để chấm phát âm từng từ
+        busy = true; micb.disabled = true; micb.querySelector('.ml').textContent = 'Mochi đang chấm…'; if (!asrFn) { asrOnProg = showLoad; showLoad(asrPct); }
+        try { const j = await wjudge(await blobTo16k(r.audio), answer); res = judgeMix(res, j); res.judged = true; } catch (e) {}
+        busy = false; micb.disabled = false; if (asrst) asrst.hidden = true; }
+      if (!res.judged && res.score < PASS && r.audio && S.set.ears2 !== false && !asrFail) {   // Chrome nghe chưa ra → nhờ Whisper nghe kỹ lại bản ghi
         busy = true; micb.disabled = true; micb.querySelector('.ml').textContent = 'Mochi nghe kỹ lại…'; if (!asrFn) { asrOnProg = showLoad; showLoad(asrPct); }
         try { const fn = await loadASR(), f32 = await blobTo16k(r.audio), text = await fn(f32), r2 = scoreSay(answer, [{ t: text }].concat(r.alts));
           if (r2.score > res.score) res = r2;

@@ -1,0 +1,32 @@
+{
+ "Xenova/whisper-base.en": {
+  "revision": "95bf40a508535962c6483ead40270b2e32267508",
+  "source": "https://huggingface.co/Xenova/whisper-base.en/tree/95bf40a508535962c6483ead40270b2e32267508",
+  "license": "Apache-2.0",
+  "files": {
+   "config.json": "5c390f2c6ba84ddeb7e362cd8b2123832911407850174e64d7081ccc36df2d64",
+   "generation_config.json": "1e57ed56ad1bd7f08a49ece7fe7daada674573805a35f8bdbbe68380aab5b1ee",
+   "preprocessor_config.json": "a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d",
+   "tokenizer.json": "c6ee8f089220a5b1188f6426456772572671c6141ae007eecb83c6a8349f5deb",
+   "tokenizer_config.json": "e082c1ad251541bf277967a703252cddd4bb37a71a43737e03d050c22ec08238",
+   "onnx/decoder_model_merged_quantized.onnx": "a25afc5858a20aabb7652cb2d555996ebe10691a69bbdb423d5073d52f060325",
+   "onnx/encoder_model_quantized.onnx": "d0d4e59e2842617b39787cece73d7e8f76f99b1697d3386c0e682eca2269f4a1"
+  },
+  "base_model": "openai/whisper-base.en (OpenAI, Apache-2.0)"
+ },
+ "Xenova/whisper-tiny.en": {
+  "revision": "79fb389fc764e7c395bd330e9531d9d32ada7049",
+  "source": "https://huggingface.co/Xenova/whisper-tiny.en/tree/79fb389fc764e7c395bd330e9531d9d32ada7049",
+  "license": "Apache-2.0",
+  "files": {
+   "config.json": "37a1073be00d19118c06557896c7c148598f4d8277edc0f5bc07c9f5554839f1",
+   "generation_config.json": "132c95ba9db45f4498f2eab3fea7c1d6a174005010f8f6b7d20cfd5e9795996b",
+   "preprocessor_config.json": "a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d",
+   "tokenizer.json": "c6ee8f089220a5b1188f6426456772572671c6141ae007eecb83c6a8349f5deb",
+   "tokenizer_config.json": "e082c1ad251541bf277967a703252cddd4bb37a71a43737e03d050c22ec08238",
+   "onnx/decoder_model_merged_quantized.onnx": "dbb2e063b7fbc41d9803b9698f93ecb035c50cbb3fb87b56cb131e4a5eb99059",
+   "onnx/encoder_model_quantized.onnx": "8cc3c6f8563d1b3fbd2c5af9f64c2bed8b020bc593c402d1ef53b9f08fbf1b90"
+  },
+  "base_model": "openai/whisper-tiny.en (OpenAI, Apache-2.0)"
+ }
+}
