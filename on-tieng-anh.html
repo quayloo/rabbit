@@ -4184,7 +4184,7 @@ function recordOnce(maxMs = 5000){
 /* ===== Điện thoại: thu âm 1 lần, Mochi tự nghe lại bản thu bằng bộ nghe Whisper chạy ngay trên máy ===== */
 const ASR_MODELS = { fast: 'Xenova/whisper-tiny.en', good: 'Xenova/whisper-base.en' };
 const asrModel = () => ASR_MODELS[(S.set && S.set.asr) || 'good'] || ASR_MODELS.good;
-let asrP = null, asrFn = null, asrFail = false, asrPct = 0, asrOnProg = null;
+let asrP = null, asrFn = null, asrPipe = null, asrT = null, asrFail = false, asrPct = 0, asrOnProg = null;
 const useASR = () => MOBILE && CAN_REC && !asrFail;
 function loadASR(){
   if (asrFn) return Promise.resolve(asrFn);
@@ -4196,6 +4196,7 @@ function loadASR(){
       const pipe = await T.pipeline('automatic-speech-recognition', asrModel(), { dtype: 'q8', device: 'wasm',
         progress_callback: x => { if (x && x.file && x.total) { files[x.file] = [x.loaded || 0, x.total]; const v = Object.values(files); asrPct = Math.round(100 * v.reduce((a, b) => a + b[0], 0) / Math.max(1, v.reduce((a, b) => a + b[1], 0))); asrOnProg && asrOnProg(asrPct); } } });
       asrPct = 100; asrOnProg && asrOnProg(100);
+      asrPipe = pipe; asrT = T;
       asrFn = async f32 => { const pad = new Float32Array(6400), x = new Float32Array(f32.length + 12800); x.set(pad, 0); x.set(f32, 6400); const o = await pipe(x); return String((o && o.text) || '').replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').trim(); };
       return asrFn;
     }).catch(e => { asrP = null; asrFail = true; throw e; });
@@ -4208,6 +4209,57 @@ async function blobTo16k(blob){
   const oc = new OfflineAudioContext(1, Math.max(1, Math.ceil(ab.duration * 16000)), 16000);
   const src = oc.createBufferSource(); src.buffer = ab; src.connect(oc.destination); src.start();
   return (await oc.startRendering()).getChannelData(0);
+}
+/* ===== Nghe kỹ lại: so xem đoạn ghi âm giống câu cần nói đến đâu =====
+   Whisper "đọc thử" câu đúng trên chính đoạn ghi âm của bé và tính độ khớp (xác suất từng từ),
+   rồi so với cách Whisper tự nghe và với vài câu sai cố ý (đổi từ chính). Câu đúng phải khớp tốt
+   gần bằng cách tự nghe, và phải khớp hơn hẳn các câu sai → mới cho qua. */
+const VERIFY_SWAP = () => Object.values(BYID).filter(w => w.en && /^[a-z]{3,10}$/.test(w.en) && w.t.id !== 'sight').map(w => w.en);
+function swapVariants(target, n = 4){
+  const words = target.split(/\s+/), clean = w => w.toLowerCase().replace(/[^a-z']/g, '');
+  const vocab = {}; Object.values(BYID).forEach(w => { if (w.en && /^[a-z]{2,12}$/i.test(w.en) && w.t && w.t.list && !['sight', 'phon', 'instr'].includes(w.t.id) && !/^(sw|ph|i):/.test(w.id) && !vocab[w.en.toLowerCase()]) vocab[w.en.toLowerCase()] = w; });
+  const out = [];
+  // ưu tiên đổi từ có trong kho từ (con vật, đồ vật…) bằng từ cùng chủ đề: cats → dogs, rabbits…
+  words.forEach((raw, k) => { const w = clean(raw), base = w.replace(/(es|s)$/, ''), hit = vocab[w] || vocab[base]; if (!hit || FNW.has(w)) return;
+    const pl = w !== hit.en.toLowerCase();
+    shuffle(hit.t.list.filter(x => x.en && x.en.toLowerCase() !== hit.en.toLowerCase() && /^[a-z]{2,12}$/i.test(x.en))).slice(0, 3)
+      .forEach(x => { const c = words.slice(); c[k] = raw.replace(/[A-Za-z']+/, x.en.toLowerCase() + (pl && !/^(sheep|fish|deer|mice)$/.test(x.en.toLowerCase()) ? 's' : '')); out.push(c.join(' ')); }); });
+  if (!out.length) { const pool = shuffle(Object.keys(vocab));
+    words.forEach((raw, k) => { const w = clean(raw); if (!w || FNW.has(w) || w.length < 3) return; pool.filter(x => x !== w && (x[0] === w[0] || Math.abs(x.length - w.length) <= 1)).slice(0, 3)
+      .forEach(x => { const c = words.slice(); c[k] = raw.replace(/[A-Za-z']+/, x); out.push(c.join(' ')); }); }); }
+  return [...new Set(out)].slice(0, n);
+}
+async function asrVerify(f32, target, freeText){
+  if (window.__mockVerify) return window.__mockVerify(target, freeText);
+  if (!asrPipe || !asrT) return null;
+  try {
+    const { model, tokenizer, processor } = asrPipe, T = asrT;
+    const pad = new Float32Array(6400), x = new Float32Array(f32.length + 12800); x.set(pad, 0); x.set(f32, 6400);
+    const feats = await processor(x);
+    const mi = await model._prepare_encoder_decoder_kwargs_for_generation({ inputs_tensor: feats.input_features, model_inputs: { input_features: feats.input_features }, model_input_name: 'input_features', generation_config: { guidance_scale: null } });
+    const tid = t => tokenizer.model.tokens_to_ids.get(t);
+    const pre = [tid('<|startoftranscript|>'), tid('<|notimestamps|>')].filter(v => v != null);
+    const lp = async text => {
+      const ids = tokenizer.encode(' ' + text.trim(), { add_special_tokens: false }); if (!ids.length) return -99;
+      const seq = pre.concat(ids), dec = new T.Tensor('int64', BigInt64Array.from(seq.map(BigInt)), [1, seq.length]);
+      const out = await model.forward({ encoder_outputs: mi.encoder_outputs, decoder_input_ids: dec });
+      const L = out.logits, V = L.dims[2], d = L.data; let sum = 0;
+      for (let k = 0; k < ids.length; k++) { const off = (pre.length - 1 + k) * V; let mx = -1e9; for (let v = 0; v < V; v++) if (d[off + v] > mx) mx = d[off + v];
+        let z = 0; for (let v = 0; v < V; v++) z += Math.exp(d[off + v] - mx); sum += d[off + ids[k]] - mx - Math.log(z); }
+      return sum / ids.length;
+    };
+    const lt = await lp(target), lf = freeText && freeText.trim() ? await lp(freeText) : lt, sw = [];
+    for (const v of swapVariants(target)) sw.push(await lp(v));
+    return verdict(lt, lf, sw);
+  } catch (e) { console.warn('verify', e); return null; }
+}
+/* lt: độ khớp câu đúng · lf: độ khớp cách Whisper tự nghe · sw: độ khớp các câu sai */
+function verdict(lt, lf, sw){
+  const gap = lt - lf, beat = sw.length ? lt - Math.max(...sw) : 1;
+  let sc = gap >= -.35 ? 85 : gap >= -.8 ? 72 : gap >= -1.3 ? 62 : gap >= -2 ? 45 : 20;
+  if (beat < .25) sc = Math.min(sc, 50);          // không phân biệt được với câu sai → chưa tính
+  else if (beat > 1.2) sc = Math.min(95, sc + 5);
+  return { score: sc, gap, beat };
 }
 /* thu 1 câu: tự dừng khi bé nói xong (im lặng ~1 giây) */
 function recordUtter(maxMs = 7000){
@@ -4267,14 +4319,24 @@ function selfCheck(ctx, talkTxt, topHtml, answer, speakTxt, cb, ids){
     if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(rec.blob); $app.querySelector('[data-a="mine"]').hidden = false;
     micb.querySelector('.ml').textContent = 'Mochi đang nghe lại…'; micb.disabled = true;
     try { const fn = await loadASR(); const text = await fn(await blobTo16k(rec.blob)); micb.disabled = false; busy = false;
-      if (!document.body.contains(micb)) return; showResult(scoreSay(answer, [{ t: text }])); }
+      if (!document.body.contains(micb)) return;
+      let r = scoreSay(answer, [{ t: text }]);
+      if (r.score < 90) { micb.querySelector('.ml').textContent = 'Mochi nghe kỹ lại…'; micb.disabled = true; busy = true; const v = await asrVerify(await blobTo16k(rec.blob), answer, text); micb.disabled = false; busy = false; if (v && v.score > r.score) r = { score: v.score, heard: text + ' · nghe kỹ lại: khớp câu mẫu', hit: answer.split(/\s+/).map(() => v.score >= PASS) }; }
+      if (!document.body.contains(micb)) return; showResult(r); }
     catch (e) { micb.disabled = false; busy = false; asrFail = true; document.getElementById('after').hidden = false; micb.querySelector('.ml').textContent = 'Bấm rồi nói';
       mochi('Mochi chưa tải được đôi tai (cần mạng). Bé bấm 🔁 nghe lại giọng mình, rồi bấm 🎤 để Mochi chấm theo cách khác nhé!', 'oops'); }
   };
   on('mic', async () => { if (busy) { if (recStop) recStop(); return; } if (useASR()) return asrTurn(); busy = true; stopSpeak(); micb.classList.add('on'); micb.querySelector('.ml').textContent = 'Mochi đang nghe…'; Sfx.tap();
     listenOnce.hint = answer; try { const r = await listenOnce(answer.split(' ').length > 3 ? 8000 : 5000); micb.classList.remove('on'); busy = false;
       if (r.audio) { if (audioUrl) URL.revokeObjectURL(audioUrl); audioUrl = URL.createObjectURL(r.audio); $app.querySelector('[data-a="mine"]').hidden = false; }
-      showResult(scoreSay(answer, r.alts)); }
+      let res = scoreSay(answer, r.alts);
+      if (res.score < PASS && r.audio && S.set.ears2 !== false && !asrFail) {   // Chrome nghe chưa ra → nhờ Whisper nghe kỹ lại bản ghi
+        busy = true; micb.disabled = true; micb.querySelector('.ml').textContent = 'Mochi nghe kỹ lại…'; if (!asrFn) { asrOnProg = showLoad; showLoad(asrPct); }
+        try { const fn = await loadASR(), f32 = await blobTo16k(r.audio), text = await fn(f32), r2 = scoreSay(answer, [{ t: text }].concat(r.alts));
+          if (r2.score > res.score) res = r2;
+          if (res.score < PASS) { const v = await asrVerify(f32, answer, text); if (v && v.score > res.score) res = { score: v.score, heard: (text || res.heard) + ' · nghe kỹ lại: khớp câu mẫu', hit: answer.split(/\s+/).map(() => v.score >= PASS) }; } } catch (e) {}
+        busy = false; micb.disabled = false; if (asrst) asrst.hidden = true; }
+      if (!document.body.contains(micb)) return; showResult(res); }
     catch (err) { micb.classList.remove('on'); busy = false;
       if (err === 'no-speech' || err === 'aborted') { micb.querySelector('.ml').textContent = 'Bấm rồi nói'; mochi('Mochi chưa nghe thấy gì. Bé nói <b>to và rõ</b> hơn nhé!', 'oops'); return; }
       micState = 'blocked'; mochi((MIC_ERR[err] || 'Micro chưa dùng được ở đây.') + ` Giờ mình tự chấm nhé! <small>(mã: ${esc(String(err))})</small>`, 'oops');
