@@ -514,6 +514,30 @@ button:focus-visible { outline: 3px solid var(--lilac); outline-offset: 2px; }
 .wbars small { font-weight: 900; color: var(--soft); font-size: .78rem; } .wbars .wv { font-size: .72rem; font-weight: 800; color: var(--soft); min-height: 1em; }
 .wbars .fut small { opacity: .5; }
 .kpi em { font-style: normal; font-size: .75rem; display: block; } .kpi em.up { color: #1b7f59; } .kpi em.dn { color: #c62a43; }
+/* tủ đồ */
+.wstage { height: 230px; border-radius: 28px; background: linear-gradient(180deg,#d6edff 0%,#eaf6ff 100%); position: relative; display: grid; place-items: center; overflow: hidden; }
+.mochi.big { width: 150px; height: 162px; }
+.wn { position: absolute; top: 12px; right: 12px; background: #fff; border-radius: 999px; padding: 4px 12px; font-weight: 900; font-size: .85rem; color: var(--lilac-d); }
+.ptab.four { grid-template-columns: repeat(4, 1fr); } .ptab.four button { font-size: .92rem; }
+.wgrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wcard { position: relative; background: #fff; border-radius: 22px; border: 3px solid var(--line); padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: var(--shadow-s); }
+.wcard.on { border-color: var(--mint); } .wcard.dim .wpic { opacity: .6; }
+.wcard b { font-weight: 900; }
+.wpic { height: 66px; display: grid; place-items: center; } .wico { width: 74px; height: 56px; overflow: visible; } .wbg { width: 70px; height: 56px; border-radius: 14px; display: block; border: 2px solid var(--line); }
+.wtag { position: absolute; top: 8px; right: 8px; background: var(--mint); color: #fff; border-radius: 999px; padding: 2px 8px; font-size: .72rem; font-weight: 900; font-style: normal; } .wtag.r { background: var(--coral); }
+.wb { width: 100%; min-height: 44px; border-radius: 14px; border: 0; font-family: inherit; font-weight: 900; font-size: .92rem; }
+.wb.wear { background: var(--lilac); color: #fff; box-shadow: 0 4px 0 var(--lilac-d); }
+.wb.off { background: #fff; color: var(--soft); border: 3px solid var(--line); }
+.wb.buy { background: var(--sun); color: #5a3d00; box-shadow: 0 4px 0 var(--sun-d); }
+.wb.lock, .wb.rare { background: #ece9f8; color: #6f6896; font-size: .8rem; }
+.wtip { margin: 0; background: #fff6d6; border-radius: 18px; padding: 12px 14px; font-weight: 800; color: #6b4b00; line-height: 1.45; }
+.chestitem { display: flex; gap: 12px; width: 100%; } .chestitem > div { flex: 1; background: #fff; border-radius: 20px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: var(--shadow-s); }
+.chestitem small { font-weight: 900; color: #b5401f; }
+/* Mochi biểu cảm */
+.mochi .m-sad, .mochi .e-hap { display: none; }
+.mochi.oops .m-sad { display: inline; } .mochi.oops .m-ok { display: none; }
+.mochi.happy .e-hap { display: inline; } .mochi.happy .eyes { display: none; }
+.toast.top { top: 84px; bottom: auto; }
 .unlockmsg { background: #fff6d6; border: 3px solid var(--sun); border-radius: 16px; padding: 10px 14px; font-weight: 800; line-height: 1.45; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
@@ -2210,11 +2234,11 @@ const MOCHI = `<svg viewBox="0 0 100 108" aria-hidden="true"><g class="bob">
 <g class="eyes"><ellipse cx="39" cy="55" rx="4.4" ry="5.4" fill="#2b2350"/><ellipse cx="61" cy="55" rx="4.4" ry="5.4" fill="#2b2350"/><circle cx="40.5" cy="53" r="1.6" fill="#fff"/><circle cx="62.5" cy="53" r="1.6" fill="#fff"/></g>
 <circle cx="31" cy="64" r="5" fill="#ffb3c4"/><circle cx="69" cy="64" r="5" fill="#ffb3c4"/>
 <path d="M47 62 Q50 65 53 62" fill="#ff8fa3" stroke="#2b2350" stroke-width="2"/>
-<path d="M44 67 Q50 73 56 67" fill="none" stroke="#2b2350" stroke-width="2.4" stroke-linecap="round"/>
+<path class="m-ok" d="M44 67 Q50 73 56 67" fill="none" stroke="#2b2350" stroke-width="2.4" stroke-linecap="round"/><path class="m-sad" d="M44 71 Q50 65 56 71" fill="none" stroke="#2b2350" stroke-width="2.4" stroke-linecap="round"/><path class="e-hap" d="M34 56 Q39 49 44 56 M56 56 Q61 49 66 56" fill="none" stroke="#2b2350" stroke-width="3" stroke-linecap="round"/>
 <path d="M30 92 Q36 98 42 94 M58 94 Q64 98 70 92" stroke="#2b2350" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 <circle cx="74" cy="34" r="7" fill="#ff7a59" stroke="#2b2350" stroke-width="2.5"/><circle cx="74" cy="34" r="2.5" fill="#ffc93c"/>
 </g></svg>`;
-const talk = (text, mood = '') => `<div class="talk"><div class="mochi ${mood}" id="mochi">${MOCHI}</div><div class="bubble" id="bub">${text}</div></div>`;
+const talk = (text, mood = '') => `<div class="talk"><div class="mochi ${mood}" id="mochi" style="${mochiBg()}">${mochiDressed()}</div><div class="bubble" id="bub">${text}</div></div>`;
 function mochi(text, mood){
   const b = document.getElementById('bub'), m = document.getElementById('mochi');
   if (b && text != null) b.innerHTML = text;
@@ -2292,13 +2316,20 @@ function testRun(u, after){
     return st < 2 ? 'Cần đúng 8/10 để đạt. Ôn thêm rồi thử lại nhé!' : ''; } });
 }
 function chestOpen(n, after){
-  const first = !(S.pb || {})[n.id]; if (first) { S.stars += 20; pbSet(n.id); }
+  const w = wdS(), first = !(S.pb || {})[n.id];
+  let gift = null;
+  if (first) { S.stars += 20; const rid = WD_RARE.find(id => !w.own[id]); if (rid) { gift = wdItem(rid); w.own[rid] = 1; } S.pbg = S.pbg || {}; if (gift) S.pbg[n.id] = gift.id; pbSet(n.id); }
+  else gift = (S.pbg || {})[n.id] ? wdItem(S.pbg[n.id]) : null;
   Sfx.tada(); confetti(160); later(() => Sfx.sparkle(), 500);
+  const gIco = gift ? (gift.cat === 'bg' ? `<span class="wbg" style="background:${gift.css}"></span>` : `<svg viewBox="${WD_VB[gift.cat]}" class="wico" aria-hidden="true">${gift.svg}</svg>`) : '';
   $app.innerHTML = topBar('Rương quà', n.u.name, '', after) + talk(first ? `Bé học xong cả <b>${n.u.name}</b> rồi! Quà của bé đây! 🎉` : 'Rương này bé mở rồi nè!', 'happy') +
-    `<div class="stage res"><div class="chestbig">🎁</div><h2>${first ? '+20 ⭐' : 'Đã mở'}</h2><div class="big">${esc(n.u.name)} · ${esc(n.u.sub)}</div>
+    `<div class="stage res"><div class="chestbig">🎁</div><h2>${first ? 'Quà của bé!' : 'Đã mở'}</h2>
+     <div class="chestitem">${gift ? `<div><div class="wpic">${gIco}</div><b>${gift.name}</b><small>ĐỒ HIẾM</small></div>` : ''}<div><div class="wpic" style="font-size:2.6rem">⭐</div><b>+20 sao</b><small style="color:#8a6200">CỘNG VÀO VÍ</small></div></div>
+     ${gift ? '<button class="btn" style="--c:var(--lilac);--d:var(--lilac-d)" data-a="wear">Mặc cho Mochi ngay</button>' : ''}
      <button class="btn" style="--c:var(--mint);--d:var(--mint-d)" data-a="c">Tiếp tục ▶</button></div>`;
   sayVi(first ? 'Bé giỏi quá! Đây là quà của bé!' : '');
   on('c', () => after());
+  on('wear', () => { w.on[gift.cat] = gift.id; save(); go(wardrobe, gift.cat, after); });
 }
 /* kiểm tra nhảy cóc: làm bài của cấp trước, đúng ≥ 90% thì mở luôn cấp l */
 function jumpTest(u, l, after){
@@ -2354,7 +2385,7 @@ function pathNodesHtml(u, nodes){
     const lab = n.kind !== 'skill' ? `<span class="plab">${nodeName(n)}</span>` : stars;
     out += `<div class="prow">${d ? `<span class="pdeco" style="${off > 0 ? 'left' : 'right'}:6%">${pic(d)}</span>` : ''}<div class="pcol" style="transform:translateX(${off}px)">
       ${isCur ? `<span class="pgo">BẮT ĐẦU · ${esc(nodeName(n)).toUpperCase()}</span>` : ''}
-      <span class="pwrap ${isCur ? 'cur' : ''}"><button class="pn k-${n.kind} ${st}" style="${col}" data-a="pn" data-u="${u.id}" data-id="${n.id}" aria-label="${esc(nodeName(n))}"><span class="pi">${done && n.kind === 'skill' ? '✓' : st === 'lock' && n.kind !== 'skill' ? nodeIcon(n) : nodeIcon(n)}</span></button>${isCur ? `<span class="pmochi ${off > 0 ? 'L' : ''}">${MOCHI}</span>` : ''}</span>${lab}</div></div>`;
+      <span class="pwrap ${isCur ? 'cur' : ''}"><button class="pn k-${n.kind} ${st}" style="${col}" data-a="pn" data-u="${u.id}" data-id="${n.id}" aria-label="${esc(nodeName(n))}"><span class="pi">${done && n.kind === 'skill' ? '✓' : st === 'lock' && n.kind !== 'skill' ? nodeIcon(n) : nodeIcon(n)}</span></button>${isCur ? `<span class="pmochi ${off > 0 ? 'L' : ''}">${mochiDressed()}</span>` : ''}</span>${lab}</div></div>`;
   });
   return `<div class="ppath">${out}</div>`;
 }
@@ -2367,7 +2398,7 @@ function phPathHtml(){
     [0, 1, 2].forEach(l => {
       const done = phStars(g.id, l) >= 2, isCur = !done && !curFound && open; if (isCur) curFound = true;
       const st = done ? 'done' : isCur ? 'cur' : 'lock', off = PATH_OFF[k++ % 8];
-      out += `<div class="prow"><div class="pcol" style="transform:translateX(${off}px)">${isCur ? `<span class="pgo">BẮT ĐẦU · CẤP ${l + 1}</span>` : ''}<span class="pwrap ${isCur ? 'cur' : ''}"><button class="pn k-skill ${st}" style="--c:${g.c || '#ff7a59'};--d:${g.d || '#e05a3a'}" data-a="pn" data-k="g" data-id="${g.id}" data-l="${l}" aria-label="${esc(g.name)} cấp ${l + 1}"><span class="pi lt">${done ? '✓' : esc(g.letters[l % g.letters.length])}</span></button>${isCur ? `<span class="pmochi ${off > 0 ? 'L' : ''}">${MOCHI}</span>` : ''}</span>${done ? `<span class="pst">${'★'.repeat(phStars(g.id, l))}${'☆'.repeat(3 - phStars(g.id, l))}</span>` : ''}</div></div>`;
+      out += `<div class="prow"><div class="pcol" style="transform:translateX(${off}px)">${isCur ? `<span class="pgo">BẮT ĐẦU · CẤP ${l + 1}</span>` : ''}<span class="pwrap ${isCur ? 'cur' : ''}"><button class="pn k-skill ${st}" style="--c:${g.c || '#ff7a59'};--d:${g.d || '#e05a3a'}" data-a="pn" data-k="g" data-id="${g.id}" data-l="${l}" aria-label="${esc(g.name)} cấp ${l + 1}"><span class="pi lt">${done ? '✓' : esc(g.letters[l % g.letters.length])}</span></button>${isCur ? `<span class="pmochi ${off > 0 ? 'L' : ''}">${mochiDressed()}</span>` : ''}</span>${done ? `<span class="pst">${'★'.repeat(phStars(g.id, l))}${'☆'.repeat(3 - phStars(g.id, l))}</span>` : ''}</div></div>`;
     });
   });
   return `<div class="ppath">${out}</div>`;
@@ -2405,6 +2436,63 @@ function dlRec(sk, ok, fast){
 function dlTrend(sk){ const h = (S.dh || {})[sk] || []; if (h.length < 6) return ['Chưa đủ dữ liệu', 'var(--soft)']; const acc = h.filter(x => x > 0).length / h.length, fr = h.filter(x => x === 2).length / h.length;
   return acc >= .9 && fr >= .7 ? ['Đang lên', '#1b7f59'] : acc < .6 ? ['Cần ôn thêm', '#c62a43'] : ['Giữ nguyên', 'var(--soft)']; }
 
+/* ================= Tủ đồ của Mochi: đổi sao lấy đồ, đồ hiếm trong rương quà ================= */
+const WD_CAT = [['hat', 'Mũ'], ['glass', 'Kính'], ['scarf', 'Khăn'], ['bg', 'Nền']];
+const WD_VB = { hat: '28 4 44 32', glass: '28 44 44 22', scarf: '22 68 56 32' };
+const WD = [
+  { id: 'bow', cat: 'hat', name: 'Nơ hồng', price: 20, svg: '<path d="M50 30 L39 23 L39 37 Z M50 30 L61 23 L61 37 Z" fill="#ff8fb7" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/><circle cx="50" cy="30" r="4" fill="#ff5a8e" stroke="#2b2350" stroke-width="2.2"/>' },
+  { id: 'party', cat: 'hat', name: 'Mũ sinh nhật', price: 30, svg: '<path d="M50 6 L61 32 L39 32 Z" fill="#4fb3ff" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/><path d="M45 18 L55 18 M42 26 L58 26" stroke="#ffc93c" stroke-width="2.6"/><circle cx="50" cy="7" r="3.4" fill="#ff5a6e" stroke="#2b2350" stroke-width="2"/>' },
+  { id: 'beanie', cat: 'hat', name: 'Mũ len', price: 50, svg: '<path d="M30 38 Q30 18 50 18 Q70 18 70 38 Z" fill="#2fbf8a" stroke="#2b2350" stroke-width="2.4"/><rect x="28" y="34" width="44" height="8" rx="4" fill="#9fe3c4" stroke="#2b2350" stroke-width="2.4"/><circle cx="50" cy="17" r="4.5" fill="#fff" stroke="#2b2350" stroke-width="2"/>' },
+  { id: 'crown', cat: 'hat', name: 'Vương miện', rare: true, svg: '<path d="M36 31 L39 18 L45 26 L50 14 L55 26 L61 18 L64 31 Z" fill="#ffc93c" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/><circle cx="50" cy="24" r="2.2" fill="#ff5a6e"/>' },
+  { id: 'flower', cat: 'hat', name: 'Vòng hoa', rare: true, svg: '<g stroke="#2b2350" stroke-width="1.8"><circle cx="35" cy="34" r="4.5" fill="#ff8fb7"/><circle cx="42" cy="30" r="4.5" fill="#ffc93c"/><circle cx="50" cy="29" r="4.5" fill="#8b7cf6"/><circle cx="58" cy="30" r="4.5" fill="#4fb3ff"/><circle cx="65" cy="34" r="4.5" fill="#ff7a59"/></g>' },
+  { id: 'round', cat: 'glass', name: 'Kính tròn', price: 30, svg: '<g fill="rgba(255,255,255,.35)" stroke="#2b2350" stroke-width="2.4"><circle cx="39" cy="55" r="8"/><circle cx="61" cy="55" r="8"/></g><path d="M47 54 Q50 51 53 54" fill="none" stroke="#2b2350" stroke-width="2.4"/>' },
+  { id: 'sun', cat: 'glass', name: 'Kính râm', price: 40, svg: '<path d="M30 50 H48 Q48 62 39 62 Q30 62 30 50 Z M52 50 H70 Q70 62 61 62 Q52 62 52 50 Z" fill="#2d2550" stroke="#2b2350" stroke-width="2"/><path d="M48 52 Q50 49 52 52" fill="none" stroke="#2b2350" stroke-width="2.4"/><path d="M33 53 L37 53" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>' },
+  { id: 'stars', cat: 'glass', name: 'Kính ngôi sao', rare: true, svg: '<g fill="#ffc93c" stroke="#2b2350" stroke-width="1.8" stroke-linejoin="round"><polygon points="39 45 41.8 51.5 48.5 52 43.4 56.5 45 63 39 59.5 33 63 34.6 56.5 29.5 52 36.2 51.5"/><polygon points="61 45 63.8 51.5 70.5 52 65.4 56.5 67 63 61 59.5 55 63 56.6 56.5 51.5 52 58.2 51.5"/></g>' },
+  { id: 'red', cat: 'scarf', name: 'Khăn đỏ', price: 25, svg: '<path d="M27 74 Q50 86 73 74 L74 80 Q50 93 26 80 Z" fill="#ff5a6e" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/><path d="M62 82 L66 98 L58 97 L57 84 Z" fill="#ff5a6e" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/>' },
+  { id: 'stripe', cat: 'scarf', name: 'Khăn sọc', price: 40, svg: '<path d="M27 74 Q50 86 73 74 L74 80 Q50 93 26 80 Z" fill="#8b7cf6" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/><path d="M36 80 L37 86 M50 83 L50 89 M64 80 L63 86" stroke="#fff" stroke-width="2.6"/><path d="M62 82 L66 98 L58 97 L57 84 Z" fill="#8b7cf6" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/>' },
+  { id: 'rainbow', cat: 'scarf', name: 'Khăn cầu vồng', rare: true, svg: '<path d="M27 74 Q50 86 73 74 L74 80 Q50 93 26 80 Z" fill="#ff7a59" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/><path d="M27 77 Q50 89 73 77" stroke="#ffc93c" stroke-width="2.4" fill="none"/><path d="M26.5 79 Q50 91 73.5 79" stroke="#2fbf8a" stroke-width="1.8" fill="none"/><path d="M62 82 L66 98 L58 97 L57 84 Z" fill="#4fb3ff" stroke="#2b2350" stroke-width="2.4" stroke-linejoin="round"/>' },
+  { id: 'garden', cat: 'bg', name: 'Vườn hoa', price: 30, css: 'linear-gradient(180deg,#d6edff 0 60%,#bfeccf 60% 100%)' },
+  { id: 'beach', cat: 'bg', name: 'Bãi biển', price: 50, css: 'linear-gradient(180deg,#bfe9ff 0 45%,#7fd0f5 45% 62%,#ffe7b0 62% 100%)' },
+  { id: 'space', cat: 'bg', name: 'Vũ trụ', rare: true, css: 'radial-gradient(circle at 25% 30%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 70% 20%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 80% 65%,#ffe27a 0 2px,transparent 2.5px),linear-gradient(180deg,#3b2f7a,#6c5ce7)' }
+];
+const WD_RARE = ['crown', 'rainbow', 'stars', 'flower', 'space'];
+const wdS = () => (S.wd = S.wd || { own: {}, on: {} });
+const wdItem = id => WD.find(x => x.id === id);
+/* Mochi mặc đồ đang chọn – dùng ở mọi nơi Mochi xuất hiện */
+function mochiDressed(){
+  const on = wdS().on, extra = ['scarf', 'glass', 'hat'].map(c => on[c] && wdItem(on[c]) ? wdItem(on[c]).svg : '').join('');
+  return extra ? MOCHI.replace(/<\/g><\/svg>\s*$/, extra + '</g></svg>') : MOCHI;
+}
+const mochiBg = () => { const b = wdS().on.bg && wdItem(wdS().on.bg); return b ? `background:${b.css};border-radius:50%` : ''; };
+function wardrobe(cat, back){
+  Sfx.musicOn();
+  cat = cat || 'hat'; back = back || home;
+  const w = wdS(), bg = w.on.bg && wdItem(w.on.bg);
+  const card = it => {
+    const own = !!w.own[it.id], on = w.on[it.cat] === it.id;
+    const ico = it.cat === 'bg' ? `<span class="wbg" style="background:${it.css}"></span>` : `<svg viewBox="${WD_VB[it.cat]}" class="wico" aria-hidden="true">${it.svg}</svg>`;
+    const btn = on ? `<button class="wb off" data-a="off" data-id="${it.id}">Cởi ra</button>`
+      : own ? `<button class="wb wear" data-a="wear" data-id="${it.id}">Mặc</button>`
+      : it.rare ? `<button class="wb rare" data-a="rare">🎁 Trong rương quà</button>`
+      : S.stars >= it.price ? `<button class="wb buy" data-a="buy" data-id="${it.id}">Đổi ${it.price} ⭐</button>`
+      : `<button class="wb lock" data-a="poor" data-id="${it.id}">Cần ${it.price} ⭐ · thiếu ${it.price - S.stars}</button>`;
+    return `<div class="wcard ${on ? 'on' : ''} ${!own && (it.rare || S.stars < it.price) ? 'dim' : ''}">${on ? '<em class="wtag">Đang mặc</em>' : it.rare && own ? '<em class="wtag r">Đồ hiếm</em>' : ''}<div class="wpic">${ico}</div><b>${it.name}</b>${btn}</div>`;
+  };
+  const n = Object.values(w.on).filter(Boolean).length;
+  $app.innerHTML = topBar('Tủ đồ của Mochi', 'Đổi sao lấy đồ cho Mochi', `<span class="chipc">⭐ ${S.stars}</span>`, back) +
+    `<div class="wstage" style="${bg ? 'background:' + bg.css : ''}"><div class="mochi big" id="mochi">${mochiDressed()}</div>${n ? `<span class="wn">Đang mặc ${n} món</span>` : ''}</div>
+     <div class="ptab four" role="tablist">${WD_CAT.map(([k, t]) => `<button role="tab" aria-selected="${k === cat}" data-a="cat" data-v="${k}">${t}</button>`).join('')}</div>
+     <div class="wgrid2">${WD.filter(x => x.cat === cat).map(card).join('')}</div>
+     <p class="wtip">🎁 Mở <b>rương quà</b> cuối mỗi Unit để nhận đồ hiếm. Sao kiếm được khi bé làm đúng bài.</p>`;
+  const again = () => go(wardrobe, cat, back);
+  on('cat', b => go(wardrobe, b.dataset.v, back));
+  on('wear', b => { const it = wdItem(b.dataset.id); w.on[it.cat] = it.id; save(); Sfx.pop(); again(); later(() => mochi(null, 'happy'), 50); });
+  on('off', b => { const it = wdItem(b.dataset.id); delete w.on[it.cat]; save(); Sfx.tap(); again(); });
+  on('buy', b => { const it = wdItem(b.dataset.id); if (S.stars < it.price) return; S.stars -= it.price; w.own[it.id] = 1; w.on[it.cat] = it.id; save(); Sfx.tada(); confetti(60); again(); later(() => { mochi(null, 'happy'); sayVi('Đẹp quá! Cảm ơn bé nhé!'); }, 50); });
+  on('rare', () => { Sfx.boing(); toast('Đồ hiếm có trong <b>rương quà</b> cuối mỗi Unit nhé!'); });
+  on('poor', b => { const it = wdItem(b.dataset.id); Sfx.boing(); toast(`Bé cần thêm <b>${it.price - S.stars} ⭐</b>. Làm bài đúng để kiếm sao nhé!`); });
+}
+
 /* ================= Trang chủ ================= */
 function greet(){
   const h = new Date().getHours();
@@ -2438,7 +2526,7 @@ function home(){
     </div>
     <div class="weekc"><div class="wh">🔥 Chuỗi ${S.streak.last >= t - 1 ? S.streak.n : 0} ngày<span>Tuần này</span></div><div class="wrow">${week}</div></div>
     ${nn ? `<button class="nextc" data-a="next"><span class="ni" style="--c:${nn.kind === 'skill' ? nn.s.c : cu.c};--d:${nn.kind === 'skill' ? nn.s.d : cu.d}">${nodeIcon(nn)}</span><span class="nt"><small>Tiếp theo trên lộ trình</small><b>${cu.name} · ${nodeName(nn)}</b></span><span class="nch">›</span></button>` : ''}
-    <div class="minis"><button data-a="book">📒 Sổ từ</button><button data-a="topics">🚀 Từ vựng mở rộng</button></div>
+    <div class="minis"><button data-a="wd">👕 Tủ đồ</button><button data-a="book">📒 Sổ từ</button><button data-a="topics">🚀 Từ vựng</button></div>
     ${TTS ? '' : '<p class="note">🔇 Trình xem này chưa đọc được tiếng Anh. Hãy mở bằng Chrome để bé nghe được phát âm.</p>'}
     ${navBar(0)}`;
   navOn();
@@ -2448,6 +2536,8 @@ function home(){
   on('book', () => go(book));
   on('parents', () => go(parents));
   on('next', () => { PATH_U = null; go(pathScreen, 'u'); });
+  on('wd', () => go(wardrobe));
+  const mo = document.getElementById('mochi'); if (mo) { mo.style.cursor = 'pointer'; mo.onclick = () => go(wardrobe); }
 }
 if ('serviceWorker' in navigator && /\.github\.io$|^localhost$/.test(location.hostname)) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 function on(a, fn){ $app.querySelectorAll(`[data-a="${a}"]`).forEach(b => b.addEventListener('click', e => fn(b, e))); }
@@ -2802,7 +2892,7 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     if (g === 'spell' && (w.en.length > 11 || /[^a-z ]/i.test(w.en))) g = 'balloon';
     qs.push({ g, w, pool: words.length >= 4 ? words : null });
   }
-  let i = 0, okN = 0, got = 0, hintQ = 0, qT0 = 0;
+  let i = 0, okN = 0, got = 0, hintQ = 0, qT0 = 0, combo = 0;
   let busy = false;
   const sess = SESSION; // trong buổi "Hôm nay học gì": tiến độ liền mạch, không dừng giữa các phần
   function next(){ busy = false; $app.style.paddingBottom = ''; QSK = i < qs.length ? (SKILL_OF[qs[i].g] || null) : null; HINT.n = 0; qT0 = performance.now(); QSHOW = null; QLOG = i < qs.length && LISTEN_G.has(qs[i].g) ? [] : null; QWORD = i < qs.length ? (qs[i].w || null) : null; if (i >= qs.length) { if (opt.track) trackRes(opt.track, okN, qs.length); const extra = opt.onScore ? opt.onScore(okN / qs.length) : '';
@@ -2816,9 +2906,9 @@ function gameRound(words, n, done, title, bonus, focus, opt = {}){
     const hinted = HINT.n > 0, q0 = qs[i], skk = SKILL_OF[q0.g], idl = ids || (q0.w ? [q0.w.id] : []);
     if (skk) { const ms = idl.length === 1 && !SK_NOTIME.has(q0.g) ? performance.now() - qT0 : null; idl.forEach(id => recSkill(id, skk, ok, ms, hinted)); dlRec(skk, ok && !hinted, ms == null || ms <= skLimit(skk, q0.w)); } if (hinted) { (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok, { hint: true })); ok = false; hintQ++; }
     else (ids || (qs[i].w ? [qs[i].w.id] : [])).forEach(id => record(id, ok));
-    if (hinted) { mochi(pick(['Lần sau bé thử tự làm trước nhé!', 'Từ này bé chưa chắc, mình sẽ ôn lại nha!', 'Gần đúng rồi! Lần sau thử không cần gợi ý nhé!']), 'oops'); }
-    else if (ok) { okN++; got++; S.stars++; save(); mochi(pick(PRAISE_VI), 'happy'); later(() => speak(pick(PRAISE_EN), { queue: true }), 300); }
-    else mochi(pick(OOPS_VI), 'oops');
+    if (hinted) { combo = 0; mochi(pick(['Lần sau bé thử tự làm trước nhé!', 'Từ này bé chưa chắc, mình sẽ ôn lại nha!', 'Gần đúng rồi! Lần sau thử không cần gợi ý nhé!']), 'oops'); }
+    else if (ok) { okN++; got++; combo++; S.stars++; save(); mochi(combo >= 3 ? `🔥 <b>${combo} câu đúng liền!</b> ${pick(PRAISE_VI)}` : pick(PRAISE_VI), 'happy'); later(() => speak(pick(PRAISE_EN), { queue: true }), 300); if ([3, 5, 8, 12, 20].includes(combo)) { Sfx.sparkle(); confetti(40 + combo * 4); if (combo >= 5) { S.stars++; save(); } } }
+    else { combo = 0; mochi(pick(OOPS_VI), 'oops'); }
     i++; feedback(ok ? 'ok' : hinted ? 'hi' : 'no', q0, showT, next);
   }
   const head = (txt) => (sess ? playTop(sess.i - 1 + i / qs.length, sess.n, done, S.stars) : playTop(i, qs.length, done, S.stars)) + talk(txt);
