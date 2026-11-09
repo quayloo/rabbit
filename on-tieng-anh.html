@@ -1,4 +1,4 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob: https://*.workers.dev; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob: https://*.workers.dev; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#8b7cf6"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Bé Học"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap"><style>.hk-btn{width:42px!important;height:42px!important;border-radius:50%!important;border:0!important;background:#fff!important;color:#2a2140!important;display:grid!important;place-items:center!important;padding:0!important;margin:0!important;box-shadow:0 4px 12px rgba(91,75,196,.13)!important;cursor:pointer;flex:none;touch-action:manipulation}
 .hk-btn:active{transform:scale(.95)}
 .hk-btn svg{width:22px;height:22px}
@@ -508,6 +508,12 @@ button:focus-visible { outline: 3px solid var(--lilac); outline-offset: 2px; }
 /* độ khó */
 .dlrow { display: flex; align-items: center; gap: 10px; font-weight: 800; } .dlrow .dln { width: 74px; } .dlrow .dlb { flex: 1; display: flex; gap: 4px; } .dlrow .dlb i { flex: 1; height: 10px; border-radius: 5px; background: #ece9f8; } .dlrow .dlb i.on { background: var(--lilac); } .dlrow em { font-style: normal; font-size: .78rem; width: 92px; text-align: right; }
 
+.wbars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 120px; align-items: end; margin: 10px 0 8px; }
+.wbars div { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+.wbars i { width: 70%; background: var(--lilac); border-radius: 8px 8px 4px 4px; min-height: 0; } .wbars i.ok { background: var(--mint); }
+.wbars small { font-weight: 900; color: var(--soft); font-size: .78rem; } .wbars .wv { font-size: .72rem; font-weight: 800; color: var(--soft); min-height: 1em; }
+.wbars .fut small { opacity: .5; }
+.kpi em { font-style: normal; font-size: .75rem; display: block; } .kpi em.up { color: #1b7f59; } .kpi em.dn { color: #c62a43; }
 .unlockmsg { background: #fff6d6; border: 3px solid var(--sun); border-radius: 16px; padding: 10px 14px; font-weight: 800; line-height: 1.45; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
@@ -2443,6 +2449,7 @@ function home(){
   on('parents', () => go(parents));
   on('next', () => { PATH_U = null; go(pathScreen, 'u'); });
 }
+if ('serviceWorker' in navigator && /\.github\.io$|^localhost$/.test(location.hostname)) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 function on(a, fn){ $app.querySelectorAll(`[data-a="${a}"]`).forEach(b => b.addEventListener('click', e => fn(b, e))); }
 const topBar = (title, sub, right = '', backFn = home) => {
   later(() => { const b = document.getElementById('backBtn'); if (b) b.onclick = () => go(backFn); }, 0);
@@ -2954,6 +2961,20 @@ function book(filter = 'all'){
 }
 
 /* ================= Góc bố mẹ ================= */
+/* báo cáo tuần cho bố mẹ: ngày học, phút học, độ chính xác, so với tuần trước */
+function weekPanel(){
+  const t = today(), dow = (t + 3) % 7, mon = t - dow, dt = S.dt || {}, acc = S.acc || {};
+  const days = [0, 1, 2, 3, 4, 5, 6].map(k => { const d = mon + k; return { d, lab: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][k], min: dt[d] || 0, n: S.log[d] || 0, fut: d > t }; });
+  const sum = (a, b) => { let m = 0, ok = 0, n = 0, on2 = 0; for (let d = a; d <= b; d++) { m += dt[d] || 0; if (acc[d]) { ok += acc[d][0]; n += acc[d][1]; } if ((S.log[d] || 0) > 0) on2++; } return { m, p: n ? Math.round(ok / n * 100) : null, on: on2 }; };
+  const w = sum(mon, t), pw = sum(mon - 7, mon - 1), max = Math.max(15, ...days.map(x => x.min));
+  const cmp = w.p != null && pw.p != null ? (w.p > pw.p ? ` <em class="up">↑ ${w.p - pw.p}%</em>` : w.p < pw.p ? ` <em class="dn">↓ ${pw.p - w.p}%</em>` : '') : '';
+  const weak = ['L', 'S', 'R', 'W'].filter(k => dlTrend(k)[0] === 'Cần ôn thêm').map(k => SKN[k][1]);
+  const gm = goalTime() ? (S.set.goalMin || 15) : null;
+  return `<div class="panel"><h3>📅 Tuần này</h3>
+    <div class="kpi"><div><b>${w.on}/${dow + 1}</b>ngày đã học</div><div><b>${w.m}</b>phút học</div><div><b>${w.p == null ? '–' : w.p + '%'}</b>câu đúng${cmp}</div></div>
+    <div class="wbars">${days.map(x => `<div class="${x.fut ? 'fut' : ''}"><span class="wv">${x.min ? x.min + '′' : ''}</span><i style="height:${x.fut ? 0 : Math.max(x.n ? 6 : 0, x.min / max * 100)}%" class="${gm && x.min >= gm ? 'ok' : ''}"></i><small>${x.lab}</small></div>`).join('')}</div>
+    <p class="note" style="text-align:left;margin:0">${w.on ? `Tuần trước: ${pw.on} ngày · ${pw.m} phút${pw.p != null ? ' · đúng ' + pw.p + '%' : ''}.` : 'Tuần này bé chưa học buổi nào.'}${weak.length ? ` Kỹ năng cần ôn thêm: <b>${weak.join(', ')}</b>.` : ''}${gm ? ` Cột xanh là ngày đạt mục tiêu ${gm} phút.` : ''}</p></div>`;
+}
 function parents(){
   Sfx.musicOff();
   const seen = Object.values(BYID).filter(w => S.w[w.id] && w.t.id !== 'sight'), kn = totalKnown(), due = dueAll().length;
@@ -2966,6 +2987,7 @@ function parents(){
     `<div class="panel"><h3>📊 Tiến độ</h3>
       <div class="kpi"><div><b>${kn}</b>từ đã thuộc</div><div><b>${seen.length - kn}</b>đang học</div><div><b>${due}</b>đến hạn ôn</div></div>
       <div class="kpi"><div><b>${S.streak.last >= today() - 1 ? S.streak.n : 0}</b>ngày liên tiếp</div><div><b>${days}</b>ngày đã học</div><div><b>${Object.keys(S.stk).length}</b>huy hiệu</div></div></div>
+    ${weekPanel()}
     <div class="panel"><h3>🎯 Mục tiêu &amp; độ khó</h3>
       <div class="setrow"><span>Mục tiêu mỗi ngày<small>Đạt mục tiêu thì vòng tròn ở trang chính khép lại</small></span>${seg('goalMode', [['time', 'Theo phút'], ['count', 'Theo bài']])}</div>
       ${goalTime() ? `<div class="setrow"><span>Số phút mỗi ngày<small>Mochi tự xếp số phần theo tốc độ thật của bé (khoảng ${S.qsec || 20} giây/câu)</small></span>${seg('goalMin', [[10, '10'], [15, '15'], [20, '20'], [30, '30']])}</div>` : `<div class="setrow"><span>Số bài mỗi ngày<small>Mỗi bài "Hôm nay học gì" có 5 phần</small></span>${seg('goalN', [[1, '1'], [2, '2'], [3, '3']])}</div>`}

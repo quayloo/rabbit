@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><style>html,body{margin:0}</style>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#8b7cf6"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Bé Học"><meta name="robots" content="noindex,nofollow"><style>html,body{margin:0}</style>
 <title>Bé Học Mỗi Ngày</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
@@ -125,6 +125,11 @@ body { font-weight: 600; background: var(--page) radial-gradient(circle at 108% 
 .card .go { display: none; }
 .tag { font-weight: 700; }
 .note { border-top: 0; background: #fff; border-radius: 20px; padding: 12px 14px; box-shadow: var(--shadow-s); font-weight: 600; }
+.instb { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 20px; padding: 10px 12px; box-shadow: 0 4px 12px rgba(91,75,196,.10); font-weight: 700; margin: 0 0 12px; }
+.instb[hidden] { display: none; }
+.instb span { flex: 1; font-size: .9rem; line-height: 1.35; }
+.instb button { border: 0; border-radius: 999px; font-weight: 800; font-family: inherit; min-height: 40px; padding: 0 14px; background: #8b7cf6; color: #fff; }
+.instb #instx { background: #f1eeff; color: #5b4bc4; padding: 0 12px; }
 </style>
 
 <div class="app">
@@ -133,6 +138,7 @@ body { font-weight: 600; background: var(--page) radial-gradient(circle at 108% 
     <p id="hi">Chạm vào một ô để vào học.</p></div>
     <button class="fsbtn" id="fsBtn" aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </header>
+  <div class="instb" id="instb" hidden><span id="instt">📲 Cài <b>Bé Học</b> lên màn hình chính để mở nhanh như app thật</span><button id="instbtn">Cài đặt</button><button id="instx" aria-label="Ẩn">✕</button></div>
 
   <section class="kids" aria-label="Bé đang học">
     <button type="button" class="kbar" id="kbar" aria-expanded="false"><span class="kav" id="kav">🐰</span><span class="kname"><small>Bé đang học</small><b id="kname0">Bé</b></span><span class="kchg">Đổi bé ▾</span></button>
@@ -300,6 +306,20 @@ body { font-weight: 600; background: var(--page) radial-gradient(circle at 108% 
     putKids(K); kform.hidden = true; renderKids(); });
   renderKids();
   markLast();
+  /* cài lên màn hình chính (PWA) */
+  if ('serviceWorker' in navigator && /\.github\.io$|^localhost$/.test(location.hostname)) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  (function(){
+    const box = document.getElementById('instb'), btn = document.getElementById('instbtn'), tx = document.getElementById('instt');
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    let hid = false; try { hid = localStorage.getItem('boe:noinst') === '1'; } catch (e) {}
+    if (standalone || hid || !/\.github\.io$|^localhost$/.test(location.hostname)) return;
+    let ev = null;
+    addEventListener('beforeinstallprompt', e => { e.preventDefault(); ev = e; box.hidden = false; });
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) { tx.innerHTML = '📲 Cài <b>Bé Học</b>: bấm nút <b>Chia sẻ</b> của Safari rồi chọn <b>Thêm vào MH chính</b>'; btn.hidden = true; box.hidden = false; }
+    btn.onclick = async () => { if (!ev) return; ev.prompt(); try { await ev.userChoice; } catch (e) {} ev = null; box.hidden = true; };
+    document.getElementById('instx').onclick = () => { box.hidden = true; try { localStorage.setItem('boe:noinst', '1'); } catch (e) {} };
+    addEventListener('appinstalled', () => { box.hidden = true; });
+  })();
   const h0 = location.hash.slice(1);
   if (h0 && document.querySelector(`.card[href="${h0}.html"]`)) { try { history.replaceState(null, '', location.pathname); history.pushState({}, '', '#' + h0); } catch (e) {} openApp(h0 + '.html', false); }
 })();
