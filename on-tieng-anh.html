@@ -2283,8 +2283,13 @@ function daily(){
   cand.sort((a, b) => a.l - b.l || rnd(3) - 1);
   cand.slice(0, 1).forEach(c => steps.push({ name: `${u.name} · ${c.s.ic} ${c.s.n} cấp ${c.l + 1}`, run: next => startLevel(u, c.s, c.l, next) }));
   if (!cand.length && testOpen(u.id) && !unitDone(u.id)) steps.push({ name: `🏆 Kiểm tra ${u.name}`, run: next => { const qs = buildTest(u); go(gameRound, null, 0, next, `Kiểm tra ${u.name}`, false, null, { qs, track: u.id + ':test', onScore: pct => { const st2 = pct >= .95 ? 3 : pct >= .8 ? 2 : pct >= .5 ? 1 : 0; if (st2 > (S.ut[u.id] || 0)) { S.ut[u.id] = st2; save(); } return st2 >= 2 ? `🏆 Bé đã học tốt <b>${u.name}</b>! Từ vựng mở rộng đã mở 🔓` : ''; } }); } });
+  // sight words của các Unit (đến Unit đang học): học đợt chưa xong, xong hết thì ôn từ đến hạn
+  const ui = UNITS.indexOf(u), swOf = b => UNITS.findIndex(x => x.id === b.u);
+  const swx = SWB.find(b => !b.ext && swOf(b) <= ui && !phDone(b.id)) || (SWB.every(b => b.ext || phDone(b.id)) ? SWB.find(b => b.ext && phOpen(b.id, 0) && !phDone(b.id)) : null);
+  if (swx) { const l = [0, 1, 2].find(l => phStars(swx.id, l) < 2); steps.push({ name: `👀 Sight words ${swx.name.replace(/^Đợt \d+ · /, '')} · cấp ${l + 1}`, run: next => phStart(swx, 'b', l, next) }); }
+  else { const swr = swReviewQs(); if (swr.length) steps.push({ name: `👀 Ôn ${swr.length} sight words`, run: next => go(gameRound, null, 0, next, 'Ôn sight words', false, null, { qs: swr, track: 'review' }) }); }
   // âm & ghép vần: mỗi ngày một chút
-  const phx = PHG.find(g => !g.ext && !phDone(g.id)) || SWB.find(b => !phDone(b.id)) || PHG.find(g => g.ext && phOpen(g.id, 0) && !phDone(g.id));
+  const phx = PHG.find(g => !g.ext && !phDone(g.id)) || PHG.find(g => g.ext && phOpen(g.id, 0) && !phDone(g.id));
   if (phx && S.set.dailyPh !== false && steps.length < 5) { const kind = PHG.includes(phx) ? 'g' : 'b', l = [0, 1, 2].find(l => phStars(phx.id, l) < 2); steps.push({ name: `🔤 ${phx.name} · cấp ${l + 1}`, run: next => phStart(phx, kind, l, next) }); }
   // mở rộng: chỉ khi đã mở
   const tp = TOPICS.find(t => t.id === S.cur && topicOpen(t) && t.list.some(w => !S.w[w.id])) || TOPICS.find(t => topicOpen(t) && t.list.some(w => !S.w[w.id]));
@@ -2301,6 +2306,12 @@ function daily(){
   on('go', () => { SESSION = sess; run(); });
 }
 const spellable = w => w && hasPic(w) && /^[a-z]+( [a-z]+)?$/i.test(w.en) && w.en.length <= 12 && w.t.id !== 'sight';
+/* sight words đã học (đợt đã qua cấp 1): ôn khi đến hạn theo kỹ năng Đọc */
+function swReviewQs(){
+  const t = today(), items = [];
+  SWB.filter(b => phStars(b.id, 0) >= 2).forEach(b => b.W.forEach(w => { if (items.some(x => x.w === w)) return; const r = skRec(w.id, 'R'); if (!r || r.d <= t) items.push({ w, b, p: (r ? r.b : -1) + Math.random() * .6 }); }));
+  return items.sort((a, b) => a.p - b.p).slice(0, 6).map((x, k) => ({ g: k % 2 ? 'flashw' : 'sight4', w: x.w, b: x.b }));
+}
 function reviewQs(){
   const t = today(), pool = playPool(); if (pool.length < 4) return [];
   const items = [];
@@ -3545,14 +3556,14 @@ skunk|chồn hôi|🦨`,
     story: { t: ['Stop! A crab is on the sand.', 'The frog can jump and swim.', 'Look at the big black truck!'], q: [{ q: 'What can the frog do?', o: ['🏊', '😴', '🥁'] }, { q: 'The truck is ...', o: ['col:#212121', 'col:#e53935', 'col:#43a047'] }] } }
 );
 const SWB = [
-  { id: 's1', name: 'Đợt 1 · Welcome & Starter', words: ['I', 'see', 'the', 'my', 'like', 'a', 'have'],
+  { id: 's1', u: 'u0', name: 'Đợt 1 · Welcome & Starter', words: ['I', 'see', 'the', 'my', 'like', 'a', 'have'],
     sents: `I [see|she|go] a cat.|🐱
 [I|My|The] like apples.|🍎
 This is [my|I|see] bag.|🎒
 I [like|see|the] my dog.|🐶
 I [have|like|see] got a pen.|yes:🖊️
 I see [the|my|I] sun.|🌞` },
-  { id: 's2', name: 'Đợt 2 · Unit 1', words: ['can', 'is', 'an', 'to', 'got', "haven't", "What's", 'this', 'yes', 'no'],
+  { id: 's2', u: 'u1', name: 'Đợt 2 · Unit 1', words: ['can', 'is', 'an', 'to', 'got', "haven't", "What's", 'this', 'yes', 'no'],
     sents: `I [can|is|to] run.|🏃
 It [is|an|can] a pen.|🖊️
 I've got [an|a|to] apple.|🍎
@@ -3563,19 +3574,19 @@ I [haven't|have|this] got a robot.|no:🤖
 [This|What's|No] is my book.|📖
 [Yes|No|This], I have.|yes:🪁
 [No|Yes|Is], I can't.|no:🎾` },
-  { id: 's3', name: 'Đợt 3 · Unit 2', words: ['what', 'who', 'he', 'she', "he's", "she's", 'we', 'you'],
+  { id: 's3', u: 'u2', name: 'Đợt 3 · Unit 2', words: ['what', 'who', 'he', 'she', "he's", "she's", 'we', 'you'],
     sents: `[Who|What|We] is this? This is my mum.|👩
 [He|She|You] is tall.|p:man-tall
 [She|He|We] is pretty.|p:girl-pretty
 [We|Who|He] like football.|⚽
 Can [you|who|she] hop?|fig:hop
 [What|Who|He] is it? It's a ball.|🏀` },
-  { id: 's4', name: 'Đợt 4 · Unit 3', words: ['they', 'look', 'go', 'with'],
+  { id: 's4', u: 'u3', name: 'Đợt 4 · Unit 3', words: ['they', 'look', 'go', 'with'],
     sents: `[They|Look|With] can run.|👫
 [Look|Go|They] at the board!|obj:board
 Let's [go|look|with] to the park.|🏞️
 I play [with|go|they] my dog.|🐶` },
-  { id: 's4b', name: 'Đợt 5 · Unit 4', words: ['her', 'his', 'their', 'my'],
+  { id: 's4b', u: 'u4', name: 'Đợt 5 · Unit 4', words: ['her', 'his', 'their', 'my'],
     sents: `This is [her|his|their] cat.|👧
 This is [his|her|their] dog.|👦
 [Their|Her|His] cows are on the farm.|w:cow
