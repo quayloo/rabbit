@@ -2274,7 +2274,9 @@ function daily(){
   const t0 = today(), u = curUnit();
   const steps = [];
   // ① Ôn 3 kỹ năng Nghe – Đọc – Nói cho các từ đến hạn (kể cả từ đã thuộc, đến khi thành thạo & phản xạ nhanh)
-  const rv = reviewQs(); if (rv.length) steps.push({ name: `🔁 Ôn tập ${rv.length} câu: nghe · đọc · nói`, run: next => go(gameRound, null, 0, next, 'Ôn tập hôm nay', false, null, { qs: rv, track: 'review' }) });
+  //    + câu, hỏi – đáp của một Unit đã học trên lớp (xoay vòng, Unit lâu chưa ôn nhất trước)
+  const rv = reviewQs(), ou = oldUnitQs(u), rq = shuffle(rv.slice(0, ou ? 6 : 9)).concat(ou ? ou.qs : []);
+  if (rq.length) steps.push({ name: `🔁 Ôn tập ${rq.length} câu: nghe · đọc · nói${ou ? ` · câu ${ou.u.name}` : ''}`, run: next => { if (ou) { S.ur = S.ur || {}; S.ur[ou.u.id] = today(); save(); } go(gameRound, null, 0, next, 'Ôn tập hôm nay', false, null, { qs: rq, track: 'review' }); } });
   // ② Spelling mỗi ngày: cấu tạo từ → ghép chữ → nghe viết
   const sp = spellingQs(u); if (sp.length) steps.push({ name: `✍️ Spelling: ${new Set(sp.map(q => q.w.en)).size} từ`, run: next => go(gameRound, null, 0, next, 'Spelling hôm nay', false, null, { qs: sp, track: 'spelling' }) });
   // ③ phần chính: kỹ năng còn yếu nhất của Unit đang học
@@ -2282,6 +2284,7 @@ function daily(){
   SK.forEach(s => { for (let l = 0; l < 3; l++) if (lvOpen(u.id, s.k, l) && lvStars(u.id, s.k, l) < 2) { cand.push({ s, l }); break; } });
   cand.sort((a, b) => a.l - b.l || rnd(3) - 1);
   cand.slice(0, 1).forEach(c => steps.push({ name: `${u.name} · ${c.s.ic} ${c.s.n} cấp ${c.l + 1}`, run: next => startLevel(u, c.s, c.l, next) }));
+  if (!cand.length && unitDone(u.id)) steps.push({ name: `🔁 Ôn lại ${u.name}: nghe · nói · đọc · viết`, run: next => go(gameRound, null, 0, next, `Ôn lại ${u.name}`, false, null, { qs: buildTest(u), track: u.id + ':rv' }) });
   if (!cand.length && testOpen(u.id) && !unitDone(u.id)) steps.push({ name: `🏆 Kiểm tra ${u.name}`, run: next => { const qs = buildTest(u); go(gameRound, null, 0, next, `Kiểm tra ${u.name}`, false, null, { qs, track: u.id + ':test', onScore: pct => { const st2 = pct >= .95 ? 3 : pct >= .8 ? 2 : pct >= .5 ? 1 : 0; if (st2 > (S.ut[u.id] || 0)) { S.ut[u.id] = st2; save(); } return st2 >= 2 ? `🏆 Bé đã học tốt <b>${u.name}</b>! Từ vựng mở rộng đã mở 🔓` : ''; } }); } });
   // sight words của các Unit (đến Unit đang học): học đợt chưa xong, xong hết thì ôn từ đến hạn
   const ui = UNITS.indexOf(u), swOf = b => UNITS.findIndex(x => x.id === b.u);
@@ -2306,6 +2309,16 @@ function daily(){
   on('go', () => { SESSION = sess; run(); });
 }
 const spellable = w => w && hasPic(w) && /^[a-z]+( [a-z]+)?$/i.test(w.en) && w.en.length <= 12 && w.t.id !== 'sight';
+const classWord = w => UNITS.some(u => u.W.includes(w));
+/* câu & hỏi – đáp của Unit đã học trên lớp: Unit trước Unit đang học (hoặc chính nó nếu đã xong), Unit lâu chưa ôn nhất trước */
+function oldUnitQs(cu){
+  const ci = UNITS.indexOf(cu), ur = S.ur || {};
+  const us = UNITS.filter((x, k) => (k < ci || (x === cu && unitDone(x.id))) && (unitPct(x.id) > 0 || unitDone(x.id) || k < ci));
+  if (!us.length) return null;
+  const u = us.sort((a, b) => (ur[a.id] || 0) - (ur[b.id] || 0) || UNITS.indexOf(a) - UNITS.indexOf(b))[0];
+  const ss = pickDistinct(u.S, 2), q = pick(u.Q);
+  return { u, qs: [{ g: 'hearpic', s: ss[0], u }, { g: 'readpic', s: ss[1] || ss[0], u }, { g: Math.random() < .5 ? 'answer' : 'qapic', q, u }] };
+}
 /* sight words đã học (đợt đã qua cấp 1): ôn khi đến hạn theo kỹ năng Đọc */
 function swReviewQs(){
   const t = today(), items = [];
@@ -2316,7 +2329,7 @@ function reviewQs(){
   const t = today(), pool = playPool(); if (pool.length < 4) return [];
   const items = [];
   Object.values(BYID).forEach(w => { if (!S.w[w.id] || !hasPic(w) || !activeWord(w) || w.t.id === 'phon') return;
-    ['L', 'R', 'S'].forEach(sk => { const r = skRec(w.id, sk); if (!r || r.d <= t) items.push({ w, sk, p: (r ? r.b : -1) + (S.w[w.id].b >= 3 ? 0 : -.5) + Math.random() * .6 }); }); });
+    ['L', 'R', 'S'].forEach(sk => { const r = skRec(w.id, sk); if (!r || r.d <= t) items.push({ w, sk, p: (r ? r.b : -1) + (S.w[w.id].b >= 3 ? 0 : -.5) + (classWord(w) ? 0 : 3) + Math.random() * .6 }); }); });
   items.sort((a, b) => a.p - b.p);
   const per = { L: 0, R: 0, S: 0 }, out = [], usedW = new Set();
   for (const it of items) { if (out.length >= 9) break; if (per[it.sk] >= 3 || usedW.has(it.w.id + it.sk)) continue; per[it.sk]++; usedW.add(it.w.id + it.sk);
@@ -2329,7 +2342,7 @@ function spellingQs(u){
   const pri = w => { const r = skRec(w.id, 'W'); return r ? (r.d <= t ? r.b : 10 + r.b) : -1; };
   uw.forEach(w => cand.push(w));
   Object.values(BYID).forEach(w => { if (S.w[w.id] && spellable(w) && activeWord(w) && !uw.includes(w) && w.t.id !== 'phon') { const r = skRec(w.id, 'W'); if (!r || r.d <= t) cand.push(w); } });
-  const ws = cand.sort((a, b) => pri(a) - pri(b) || Math.random() - .5).filter(w => pri(w) < 10).slice(0, 4);
+  const ws = cand.sort((a, b) => classWord(b) - classWord(a) || pri(a) - pri(b) || Math.random() - .5).filter(w => pri(w) < 10).slice(0, 4);
   if (ws.length < 3) cand.forEach(w => { if (ws.length < 3 && !ws.includes(w)) ws.push(w); });
   const out = [];
   ws.forEach(w => { const r = skRec(w.id, 'W'), b = r ? r.b : -1;
@@ -3669,7 +3682,7 @@ function swBuild(b, l){
   if (l === 2) cyc(b.S, 8).forEach(s => out.push({ g: 'blank', s, u: { W: b.W.filter(w => w.en.toLowerCase() === s.ans.toLowerCase()) } }));
   return out;
 }
-const swPool = b => { const all = SWB.flatMap(x => x.W); return all; };
+const swPool = b => { const ci = UNITS.indexOf(curUnit()), ok = x => x === b || (x.ext ? phOpen(x.id, 0) : UNITS.findIndex(u => u.id === x.u) <= Math.max(ci, (b ? UNITS.findIndex(u => u.id === b.u) : -1))); const all = SWB.filter(ok).flatMap(x => x.W); return all.length >= 4 ? all : SWB.filter(x => !x.ext).flatMap(x => x.W); };
 function similarSW(w, b, n){ const pool = swPool(b).filter(x => x.en !== w.en); const sc = x => (x.en[0].toLowerCase() === w.en[0].toLowerCase() ? 3 : 0) - Math.abs(x.en.length - w.en.length) + Math.random() * 2; return pool.sort((a, c) => sc(c) - sc(a)).slice(0, n); }
 /* trò âm */
 UENG.initial = (q, cb, ctx) => {
